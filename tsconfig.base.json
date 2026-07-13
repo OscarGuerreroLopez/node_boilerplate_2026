@@ -1,0 +1,28 @@
+{
+  "compilerOptions": {
+    "baseUrl": ".",
+    "paths": {
+      "@common": ["src/common/index.ts"],
+      "@common/*": ["src/common/*"],
+      "@core": ["src/core/index.ts"],
+      "@core/*": ["src/core/*"],
+      "@features": ["src/features/index.ts"],
+      "@features/*": ["src/features/*"],
+      "@versions": ["src/versions/index.ts"],
+      "@versions/*": ["src/versions/*"]
+    },
+    "types": ["node", "jest", "express"],
+    "target": "ESNext",
+    "module": "Node16",
+    "moduleResolution": "Node16",
+    "typeRoots": ["./node_modules/@types"],
+    "sourceMap": true,
+    "outDir": "dist/",
+    "esModuleInterop": true,
+    "isolatedModules": true,
+    "forceConsistentCasingInFileNames": true,
+    "strict": true,
+    "strictNullChecks": true,
+    "skipLibCheck": true
+  }
+}

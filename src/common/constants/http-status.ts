@@ -1,0 +1,5 @@
+export const HTTP_STATUS = {
+	BAD_REQUEST: 400,
+	FORBIDDEN: 403,
+	PAYLOAD_TOO_LARGE: 413
+} as const;
