@@ -1,5 +1,5 @@
-import { envs } from '@core';
-import { sanitizeLogData } from '@common';
+import { envs } from '@core/config';
+import { sanitizeLogData } from '@common/utils';
 import { persistLocalLog } from './logger.local';
 import type { LogLevel, LoggerContext, LoggerMethods, LoggerScope } from './logger.types';
 

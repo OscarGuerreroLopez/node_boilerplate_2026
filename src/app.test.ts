@@ -44,7 +44,7 @@ describe('app', () => {
 
 		expect(response.status).toBe(400);
 		expect(response.body.name).toBe('BadRequestError');
-		expect(response.body.message).toBe('Invalid name');
+		expect(response.body.message).toBe('Bad request, check logs for more details');
 		expect(typeof response.body.code).toBe('string');
 	});
 });

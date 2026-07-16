@@ -1,5 +1,5 @@
 import express from 'express';
-import { envs } from '@core';
+import { envs } from '@core/config';
 import { HealthRoutes } from '@features/health';
 import { V1Routes } from '@versions';
 import { applyExpressEssentials, requestContextMiddleware } from '@common/middlewares';

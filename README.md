@@ -38,7 +38,7 @@ Optional variables:
 ```env
 CORS_ALLOWED_ORIGINS=http://localhost:3000,http://localhost:5173
 MAX_JSON_BODY_SIZE=300kb
-MAX_SAMPLE_REQUEST_BYTES=65536
+SMALL_REQUEST_BYTES=65536
 ```
 
 ## Run
