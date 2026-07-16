@@ -2,6 +2,7 @@ import { type NextFunction, type Request, type Response } from 'express';
 import { HTTP_STATUS } from '@common/constants';
 import { type User } from '@common/types';
 import { sampleUseCase } from '../application/usecases';
+import { createLogger } from '@core/logger';
 
 interface SampleRequest {
 	name?: string;
@@ -20,8 +21,13 @@ interface ErrorResponse {
 	code: string;
 }
 
+const logger = createLogger({
+	file: 'src/features/sample/http-presentation/controller.ts',
+	property: 'sample'
+});
+
 export class SampleController {
-	public entrypoint = (
+	public sample = (
 		req: Request<unknown, unknown, unknown, Partial<SampleRequest>>,
 		res: Response<SampleResponse | ErrorResponse>,
 		_next: NextFunction
@@ -36,10 +42,19 @@ export class SampleController {
 			});
 
 			res.json({ message: 'ok', result, code: code ?? 'noCode', user });
-		} catch {
+		} catch (error: unknown) {
+			const errorContext =
+				error instanceof Error ? { message: error.message, stack: error.stack } : { info: JSON.stringify(error) };
+
+			logger.error('Error occurred while processing sample request', {
+				user,
+				code,
+				...errorContext
+			});
+
 			res.status(HTTP_STATUS.BAD_REQUEST).json({
 				name: 'BadRequestError',
-				message: 'Invalid name',
+				message: 'Bad request, check logs for more details',
 				code: code ?? 'noCode'
 			});
 		}

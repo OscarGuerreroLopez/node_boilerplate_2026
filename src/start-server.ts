@@ -1,5 +1,5 @@
 import type { Express } from 'express';
-import { createLogger } from '@core';
+import { createLogger } from '@core/logger';
 
 interface StartServerParams {
 	app: Express;

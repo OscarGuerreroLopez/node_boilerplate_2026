@@ -1,4 +1,4 @@
-import { type User } from '@common';
+import { type User } from '@common/types';
 
 declare module 'express' {
 	export interface Request {

@@ -1,4 +1,4 @@
-import { createLogger } from '@core';
+import { createLogger } from '@core/logger';
 import { type User } from '@common/types';
 import { SampleDto } from '../../domain';
 
@@ -18,7 +18,7 @@ interface SampleUseCasePayload {
 
 type SampleUseCase = (payload: SampleUseCasePayload) => SampleResponse;
 
-const sampleLogger = createLogger({
+const logger = createLogger({
 	file: 'usecases/sample.ts',
 	property: 'sample'
 });
@@ -27,10 +27,9 @@ type MakeSampleUseCase = (dependencies: MakeSampleUseDependencies) => SampleUseC
 
 export const makeSampleUseCase: MakeSampleUseCase = ({ greetingService }) => {
 	const sample: SampleUseCase = ({ name, user, code }) => {
-		sampleLogger.info('sample input params', {
+		logger.info('sample input params', {
 			code: code ?? 'noCode',
-			params: { name, user },
-			password: 'HolaDonPepito'
+			params: { name, user }
 		});
 
 		const dto = SampleDto.create({ name });

@@ -13,7 +13,7 @@ const CORS_ALLOWED_ORIGINS = get('CORS_ALLOWED_ORIGINS')
 	.filter((origin) => origin.length > 0);
 
 const MAX_JSON_BODY_SIZE = get('MAX_JSON_BODY_SIZE').default('300kb').asString();
-const MAX_SAMPLE_REQUEST_BYTES = get('MAX_SAMPLE_REQUEST_BYTES').default('65536').asIntPositive();
+const SMALL_REQUEST_BYTES = get('SMALL_REQUEST_BYTES').default('65536').asIntPositive();
 
 const NODE_ENV = get('NODE_ENV')
 	.default('local')
@@ -29,5 +29,5 @@ export const envs = {
 	NODE_ENV,
 	CORS_ALLOWED_ORIGINS,
 	MAX_JSON_BODY_SIZE,
-	MAX_SAMPLE_REQUEST_BYTES
+	SMALL_REQUEST_BYTES
 };
