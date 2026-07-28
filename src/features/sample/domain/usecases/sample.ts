@@ -1,6 +1,6 @@
 import { createLogger } from '@core/logger';
 import { type User } from '@common/types';
-import { SampleDto } from '../../domain';
+import { SampleDto } from '../dtos';
 
 interface SampleResponse {
 	result: string;

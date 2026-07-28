@@ -93,8 +93,6 @@ curl "http://localhost:9000/api/v1/sample?name=Oscar" \
 
 ## Project structure
 
-
-
 ## Root structure
 
 ```text
@@ -118,12 +116,12 @@ src/
     health/
       presentation/
     sample/
-      application/
-        services/
-        usecases/
+      data-access/
       domain/
         dtos/
-      presentation/
+        services/
+        usecases/
+      http-presentation/
   versions/
     v1/
 ```
