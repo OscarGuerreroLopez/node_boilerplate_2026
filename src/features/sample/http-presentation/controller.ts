@@ -1,7 +1,7 @@
 import { type NextFunction, type Request, type Response } from 'express';
 import { HTTP_STATUS } from '@common/constants';
 import { type User } from '@common/types';
-import { sampleUseCase } from '../application/usecases';
+import { sampleUseCase } from '../domain/usecases';
 import { createLogger } from '@core/logger';
 
 interface SampleRequest {
