@@ -16,16 +16,25 @@ This version includes:
 
 ## Requirements
 
+- [NVM](https://github.com/nvm-sh/nvm)
 - Node.js `>=22.13.0` (see `.nvmrc`)
-- pnpm `>=11.0.0`
+- pnpm `11.3.0` (see `packageManager` in `package.json`)
 
-## Setup
+## First-time setup
 
 ```bash
+nvm install
 nvm use
+
+corepack enable
+corepack prepare pnpm@11.3.0 --activate
+
 pnpm install
 cp .env.template .env
 ```
+
+Corepack manages the pnpm version declared by the project. If `pnpm --version` already reports `11.3.0`,
+the Corepack commands can be skipped.
 
 ## Environment
 
