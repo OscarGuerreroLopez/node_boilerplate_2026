@@ -136,6 +136,15 @@ router.get('/protected', validateApiKey, controller.handler);
 - `pnpm version:minor`
 - `pnpm version:major`
 
+## AI agent: caveman mode
+
+To make the agent use the caveman skill, say one of:
+
+- "caveman mode"
+- "talk like caveman"
+
+If it does not load, say "use the caveman skill" explicitly. To turn it off, say "stop caveman" or "normal mode".
+
 ## Project Structure
 
 Each feature in `src/features/` follows a 3-layer architecture:
