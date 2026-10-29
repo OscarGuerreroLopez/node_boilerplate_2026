@@ -11,4 +11,5 @@ This folder contains instructions for agents working on this repository.
 - Use path aliases and existing patterns.
 - Run `pnpm typecheck && pnpm lint && pnpm test` before considering done.
 - Don't commit secrets; follow Conventional Commits.
+- Never commit or push unless the user explicitly asks for it.
 - Never push to main.

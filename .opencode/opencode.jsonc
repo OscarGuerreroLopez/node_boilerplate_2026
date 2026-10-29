@@ -27,5 +27,9 @@
     "external_directory": "ask",
     "webfetch": "allow",
     "websearch": "allow"
-  }
+  },
+  "instructions": [
+    "docs/style/javascript-mdn-style.md",
+    "docs/architecture/clean-architecture.md"
+  ]
 }

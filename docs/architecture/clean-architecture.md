@@ -88,11 +88,13 @@ src/features/<feature>/
 - Follow existing DI pattern from sample feature.
 - Wire dependencies in route setup or feature composition.
 - Avoid global singletons where testability suffers; use factories.
+- Define interfaces/ports in domain; implement adapters in data-access/http-presentation.
 
 ## Error Handling
 - Use typed errors and let global error handler format responses.
 - Don't leak stack traces in production responses.
 - Follow existing conventions in `src/app.ts` and common middlewares.
+- Map domain/data errors to appropriate HTTP status codes in controllers/middlewares.
 
 ## Testing
 - Unit test use cases and services with mocked repos.
@@ -107,6 +109,7 @@ src/features/<feature>/
 4. Add types to `@common/types` if shared.
 5. Write tests.
 6. Run `pnpm typecheck && pnpm lint` and `pnpm test`.
+7. Ensure no domain depends on external frameworks/libraries.
 
 ## Anti-patterns
 - Putting DB queries in controllers/use cases directly.
@@ -114,3 +117,17 @@ src/features/<feature>/
 - Returning ORM entities from use cases to controllers.
 - Skipping DTOs and passing raw objects everywhere.
 - Creating circular dependencies.
+- Relying on globals or implicit cross-module state.
+- Mutating inputs/parameters across layers.
+- Putting framework/DB logic in domain.
+
+## Additional Guidance (from industry best practices)
+- **Explicit boundaries**: Validate at edges (HTTP/controllers), keep domain pure. Don't leak external types across boundaries.
+- **Immutability**: Prefer immutable data where practical; avoid mutating objects/arrays passed between layers.
+- **Single responsibility**: Each module/function does one thing. Extract helpers/services when logic is reused or complex.
+- **Configuration**: Centralize config (env), inject where needed; avoid hardcoding values.
+- **Error handling**: Use typed/domain errors, map to HTTP in presentation layer only.
+- **Testing**: Favor unit tests for domain/use cases, integration for HTTP; keep tests deterministic.
+- **Dependency inversion**: Domain defines interfaces (ports), data-access/http implement them (adapters). Inject dependencies.
+- **Keep it simple**: Apply YAGNI; don't over-engineer. Follow the sample feature as source of truth.
+- **Functional style**: Prefer pure functions in domain/use cases where possible; use classes only when necessary for DI/framework integration.

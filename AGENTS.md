@@ -96,6 +96,7 @@ New versioned feature routes must be exported and registered in the appropriate 
 - Jest mappings must remain consistent with TypeScript path aliases.
 - Inspect `tsconfig.json`, `tsconfig.build.json` and `jest.config.ts` before changing compilation, aliases or test configuration.
 - Prefer explicit types and the existing project conventions over `any`.
+- Prefer functional programming over OOP. Favor pure functions, immutability, composition, and function-based modules over classes where practical. Use classes only when they provide clear, necessary benefits (e.g., framework integration, specific patterns).
 
 ## Commands
 
@@ -144,4 +145,5 @@ pnpm test -- src/path/to/file.test.ts
 - Do not introduce new architectural abstractions or dependencies without a clear need.
 - Do not modify generated `dist/` files directly.
 - Do not claim checks passed unless they were actually run and succeeded.
+- Never commit or push changes unless the user explicitly asks for it. Do not proactively run `git commit`, `git push`, or create pull requests.
 - If repository behavior contradicts this document, verify the implementation and update this guidance when appropriate.
