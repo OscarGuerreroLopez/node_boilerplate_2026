@@ -4,6 +4,7 @@ import { startServer } from './start-server';
 
 void startServer({
 	app,
-	port: envs.SAMPLE_PORT,
-	entryFile: 'index.ts'
+	port: envs.PORT,
+	entryFile: 'index.ts',
+	shutdownTimeoutMs: envs.SHUTDOWN_TIMEOUT_MS
 });

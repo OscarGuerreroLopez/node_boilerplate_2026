@@ -5,7 +5,25 @@ const MASK_VISIBLE_CHARS = 4;
 const MASK_VISIBLE_SEGMENTS = 2;
 const MIN_VISIBLE_STRING_LENGTH = MASK_VISIBLE_CHARS * MASK_VISIBLE_SEGMENTS;
 
-const SENSITIVE_KEYS = new Set(['email']);
+const FULLY_MASKED_KEY_PATTERNS = [
+	/password/,
+	/passwd/,
+	/pwd/,
+	/secret/,
+	/token/,
+	/apikey/,
+	/^auth$/,
+	/authorization/,
+	/cookie/,
+	/credential/,
+	/privatekey/
+];
+
+const normalizeKey = (key: string): string => key.toLowerCase().replace(/[^a-z0-9]/g, '');
+
+const isFullyMaskedKey = (normalizedKey: string): boolean => {
+	return FULLY_MASKED_KEY_PATTERNS.some((pattern) => pattern.test(normalizedKey));
+};
 
 const partiallyMaskSensitiveString = (value: string): string => {
 	const atIndex = value.indexOf('@');
@@ -33,6 +51,10 @@ const partiallyMaskSensitiveString = (value: string): string => {
 	return `${firstPart}${MASK_SEPARATOR}${lastPart}`;
 };
 
+const maskSensitiveValue = (value: unknown): string => {
+	return typeof value === 'string' ? FULLY_MASKED_VALUE : NON_STRING_MASKED_VALUE;
+};
+
 export const sanitizeLogData = (value: unknown): unknown => {
 	if (Array.isArray(value)) {
 		return value.map((item) => sanitizeLogData(item));
@@ -45,14 +67,14 @@ export const sanitizeLogData = (value: unknown): unknown => {
 	const sanitizedObject: Record<string, unknown> = {};
 
 	for (const [key, nestedValue] of Object.entries(value)) {
-		const normalizedKey = key.toLowerCase();
+		const normalizedKey = normalizeKey(key);
 
-		if (normalizedKey === 'password') {
-			sanitizedObject[key] = NON_STRING_MASKED_VALUE;
+		if (isFullyMaskedKey(normalizedKey)) {
+			sanitizedObject[key] = maskSensitiveValue(nestedValue);
 			continue;
 		}
 
-		if (SENSITIVE_KEYS.has(normalizedKey)) {
+		if (normalizedKey.includes('email')) {
 			sanitizedObject[key] =
 				typeof nestedValue === 'string' ? partiallyMaskSensitiveString(nestedValue) : NON_STRING_MASKED_VALUE;
 			continue;

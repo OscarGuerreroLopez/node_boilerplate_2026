@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { credentialsMiddleware, requestSmallSizeLimitMiddleware } from '@common/middlewares';
+import { credentialsMiddleware } from '@common/middlewares';
 import { SampleController } from './controller';
 
 export class SampleRoutes {
@@ -7,7 +7,7 @@ export class SampleRoutes {
 		const router = Router();
 		const controller = new SampleController();
 
-		router.get('/', credentialsMiddleware, requestSmallSizeLimitMiddleware, controller.sample);
+		router.get('/', credentialsMiddleware, controller.sample);
 
 		return router;
 	}

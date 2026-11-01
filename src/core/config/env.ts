@@ -1,10 +1,30 @@
 import 'dotenv/config';
 import { get } from 'env-var';
+import { NodeEnvEnum } from '@common/types';
 
-const NODE_ENVS = ['local', 'development', 'production', 'test'] as const;
+const NODE_ENVS = Object.values(NodeEnvEnum);
+const DEFAULT_API_KEY = 'local-api-key';
+const DEFAULT_API_PREFIX = '/api/v1';
+const API_PREFIX_PATTERN = /^\/[a-z0-9/_-]*$/i;
 
-const API_KEY = get('API_KEY').default('local-api-key').asString();
+const normalizeApiPrefix = (value: string): string => {
+	const trimmedValue = value.trim();
+	const withLeadingSlash = trimmedValue.startsWith('/') ? trimmedValue : `/${trimmedValue}`;
+	const withoutTrailingSlash =
+		withLeadingSlash.length > 1 && withLeadingSlash.endsWith('/')
+			? withLeadingSlash.slice(0, withLeadingSlash.length - 1)
+			: withLeadingSlash;
 
+	if (!API_PREFIX_PATTERN.test(withoutTrailingSlash)) {
+		throw new Error('API_PREFIX must be a valid URL path, for example /api/v1');
+	}
+
+	return withoutTrailingSlash;
+};
+
+const NODE_ENV = get('NODE_ENV').default(NodeEnvEnum.LOCAL).asEnum(NODE_ENVS);
+
+const API_KEY = get('API_KEY').default(DEFAULT_API_KEY).asString();
 const CORS_ALLOWED_ORIGINS = get('CORS_ALLOWED_ORIGINS')
 	.default('')
 	.asString()
@@ -13,21 +33,27 @@ const CORS_ALLOWED_ORIGINS = get('CORS_ALLOWED_ORIGINS')
 	.filter((origin) => origin.length > 0);
 
 const MAX_JSON_BODY_SIZE = get('MAX_JSON_BODY_SIZE').default('300kb').asString();
-const SMALL_REQUEST_BYTES = get('SMALL_REQUEST_BYTES').default('65536').asIntPositive();
-
-const NODE_ENV = get('NODE_ENV')
-	.default('local')
-	.asEnum([...NODE_ENVS]);
+const API_PREFIX = normalizeApiPrefix(get('API_PREFIX').default(DEFAULT_API_PREFIX).asString());
+const TRUST_PROXY = get('TRUST_PROXY').default('false').asBoolStrict();
+const TRUST_IDENTITY_HEADER = get('TRUST_IDENTITY_HEADER').default('false').asBoolStrict();
+const SHUTDOWN_TIMEOUT_MS = get('SHUTDOWN_TIMEOUT_MS').default('10000').asIntPositive();
 
 const SAMPLE_PORT = get('SAMPLE_PORT').default('9000').asPortNumber();
 const PORT = get('PORT').default(String(SAMPLE_PORT)).asPortNumber();
+
+if (NODE_ENV === NodeEnvEnum.PRODUCTION && (API_KEY.trim().length === 0 || API_KEY === DEFAULT_API_KEY)) {
+	throw new Error('API_KEY must be set to a non-default value in production');
+}
 
 export const envs = {
 	PORT,
 	SAMPLE_PORT,
 	API_KEY,
 	NODE_ENV,
+	API_PREFIX,
+	TRUST_PROXY,
+	TRUST_IDENTITY_HEADER,
+	SHUTDOWN_TIMEOUT_MS,
 	CORS_ALLOWED_ORIGINS,
-	MAX_JSON_BODY_SIZE,
-	SMALL_REQUEST_BYTES
+	MAX_JSON_BODY_SIZE
 };

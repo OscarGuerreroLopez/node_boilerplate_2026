@@ -5,7 +5,7 @@ describe('makeSampleUseCase', () => {
 		const greetingService = jest.fn().mockReturnValue('custom greeting');
 		const sample = makeSampleUseCase({ greetingService });
 
-		const response = sample({ name: '  Oscar  ', code: 'code-1' });
+		const response = sample({ name: '  Oscar  ' });
 
 		expect(greetingService).toHaveBeenCalledWith('Oscar');
 		expect(response).toEqual({ result: 'custom greeting' });

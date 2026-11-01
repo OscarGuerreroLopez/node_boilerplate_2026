@@ -1,11 +1,11 @@
 import { envs } from '@core/config';
-import { makeRequestSizeLimitMiddleware } from './request-size.middleware';
 import { makeApiKeyMiddleware } from './api-key.middleware';
 
+export * from './error-handler.middleware';
 export * from './essentials.middleware';
+export * from './not-found.middleware';
 export * from './request-context.middleware';
-
-export const requestSmallSizeLimitMiddleware = makeRequestSizeLimitMiddleware(envs.SMALL_REQUEST_BYTES);
+export * from './request-logging.middleware';
 
 export const credentialsMiddleware = makeApiKeyMiddleware({
 	getExpectedApiKey: () => envs.API_KEY

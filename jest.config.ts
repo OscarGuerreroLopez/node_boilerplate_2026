@@ -5,6 +5,14 @@ const config: Config = {
 	collectCoverage: true,
 	coverageDirectory: 'coverage',
 	coverageProvider: 'v8',
+	coverageThreshold: {
+		global: {
+			branches: 80,
+			functions: 90,
+			lines: 90,
+			statements: 90
+		}
+	},
 	moduleNameMapper: {
 		'^@common/(.*)$': '<rootDir>/src/common/$1',
 		'^@common$': '<rootDir>/src/common/index.ts',

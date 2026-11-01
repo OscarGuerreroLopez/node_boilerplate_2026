@@ -20,7 +20,7 @@ src/
 ├── common/
 │   ├── constants/            # Shared constants, such as HTTP status codes
 │   ├── context/              # Request-context helpers
-│   ├── middlewares/          # Essentials, API key, request context and size limits
+│   ├── middlewares/          # Essentials, API key, request context and logging
 │   ├── types/                # Shared types, such as environment and user
 │   └── utils/                # Shared helpers and their tests
 ├── core/
@@ -84,9 +84,11 @@ New versioned feature routes must be exported and registered in the appropriate 
 ### Middleware and request context
 
 - Follow the middleware ordering established in `src/app.ts`.
-- Application-wide middleware includes Express essentials, such as security headers, CORS and JSON parsing, followed by request-context middleware.
-- Apply route-level API-key validation and request-size limits according to the existing middleware patterns.
+- Application-wide middleware starts with request context and request logging, then Express essentials such as body parsing limits, security headers and CORS.
+- Apply route-level API-key validation according to the existing middleware patterns.
+- Request body limits are configured once for JSON and URL-encoded parsers through `MAX_JSON_BODY_SIZE`.
 - Follow the established request-context conventions for accessing `req.user`, `req.code` and other request-scoped data.
+- Identity is read only from `x-authenticated-user` and only when `TRUST_IDENTITY_HEADER=true`. Enable it only behind a trusted gateway that strips client-supplied identity headers. The legacy `user` header is ignored.
 - Use `createLogger` from `@core/logger` where appropriate.
 - Preserve existing error-handling conventions unless a change is explicitly required.
 

@@ -1,12 +1,7 @@
 import { timingSafeEqual } from 'node:crypto';
 import { type NextFunction, type Request, type RequestHandler, type Response } from 'express';
 import { HTTP_STATUS } from '@common/constants';
-
-interface ErrorResponse {
-	name: string;
-	message: string;
-	code: string;
-}
+import { type ErrorResponse } from '@common/types';
 
 interface MakeApiKeyMiddlewareOptions {
 	getExpectedApiKey: () => string;

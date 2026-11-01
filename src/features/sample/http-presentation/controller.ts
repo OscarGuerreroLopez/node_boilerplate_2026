@@ -1,8 +1,9 @@
 import { type NextFunction, type Request, type Response } from 'express';
 import { HTTP_STATUS } from '@common/constants';
-import { type User } from '@common/types';
+import { HttpError } from '@common/errors';
+import { type ErrorResponse, type User } from '@common/types';
+import { SampleValidationError } from '../domain/errors/sample-validation.error';
 import { sampleUseCase } from '../domain/usecases';
-import { createLogger } from '@core/logger';
 
 interface SampleRequest {
 	name?: string;
@@ -15,48 +16,34 @@ interface SampleResponse {
 	user?: User;
 }
 
-interface ErrorResponse {
-	name: string;
-	message: string;
-	code: string;
-}
-
-const logger = createLogger({
-	file: 'src/features/sample/http-presentation/controller.ts',
-	property: 'sample'
-});
-
 export class SampleController {
 	public sample = (
 		req: Request<unknown, unknown, unknown, Partial<SampleRequest>>,
 		res: Response<SampleResponse | ErrorResponse>,
-		_next: NextFunction
+		next: NextFunction
 	): void => {
 		const { user, code } = req;
 
 		try {
 			const { result } = sampleUseCase({
-				name: req.query.name,
-				user,
-				code
+				name: req.query.name
 			});
 
 			res.json({ message: 'ok', result, code: code ?? 'noCode', user });
 		} catch (error: unknown) {
-			const errorContext =
-				error instanceof Error ? { message: error.message, stack: error.stack } : { info: JSON.stringify(error) };
+			if (error instanceof SampleValidationError) {
+				next(
+					new HttpError({
+						statusCode: HTTP_STATUS.BAD_REQUEST,
+						name: 'BadRequestError',
+						message: error.message,
+						code: code ?? 'noCode'
+					})
+				);
+				return;
+			}
 
-			logger.error('Error occurred while processing sample request', {
-				user,
-				code,
-				...errorContext
-			});
-
-			res.status(HTTP_STATUS.BAD_REQUEST).json({
-				name: 'BadRequestError',
-				message: 'Bad request, check logs for more details',
-				code: code ?? 'noCode'
-			});
+			next(error);
 		}
 	};
 }

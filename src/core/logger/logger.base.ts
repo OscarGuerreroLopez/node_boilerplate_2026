@@ -6,12 +6,18 @@ import type { LogLevel, LoggerContext, LoggerMethods, LoggerScope } from './logg
 const DEFAULT_LOGGER_SERVICE = 'BOILERPLATE_API';
 const isLocalRuntime = envs.NODE_ENV === 'local';
 
+const reportPersistenceFailure = (error: unknown): void => {
+	const message = error instanceof Error ? error.message : String(error);
+
+	process.stderr.write(`[logger] failed to persist log: ${message}\n`);
+};
+
 const persistLog = (level: LogLevel, payload: Record<string, unknown>): void => {
 	if (!isLocalRuntime) {
 		return;
 	}
 
-	persistLocalLog(level, payload);
+	void persistLocalLog(level, payload).catch(reportPersistenceFailure);
 };
 
 const log = (level: LogLevel, message: string, context?: LoggerContext): void => {

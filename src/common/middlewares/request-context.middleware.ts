@@ -1,12 +1,27 @@
 import { randomUUID } from 'node:crypto';
 import { type NextFunction, type Request, type Response } from 'express';
-import { parseUserHeader } from '@common/context';
+import { parseUserHeader, TRUSTED_IDENTITY_HEADER } from '@common/context';
+import { envs } from '@core/config';
 
-export const requestContextMiddleware = (req: Request, _res: Response, next: NextFunction): void => {
-	const headerCode = req.headers.code;
-	const codeFromHeader = Array.isArray(headerCode) ? headerCode[0] : headerCode;
+interface RequestContextMiddlewareOptions {
+	trustIdentityHeader: boolean;
+}
 
-	req.code = typeof codeFromHeader === 'string' ? codeFromHeader : randomUUID();
-	req.user = parseUserHeader(req.headers.user);
-	next();
+type RequestContextMiddleware = (req: Request, res: Response, next: NextFunction) => void;
+
+export const makeRequestContextMiddleware = ({
+	trustIdentityHeader
+}: RequestContextMiddlewareOptions): RequestContextMiddleware => {
+	return (req, _res, next): void => {
+		const headerCode = req.headers.code;
+		const codeFromHeader = Array.isArray(headerCode) ? headerCode[0] : headerCode;
+
+		req.code = typeof codeFromHeader === 'string' ? codeFromHeader : randomUUID();
+		req.user = trustIdentityHeader ? parseUserHeader(req.headers[TRUSTED_IDENTITY_HEADER]) : undefined;
+		next();
+	};
 };
+
+export const requestContextMiddleware = makeRequestContextMiddleware({
+	trustIdentityHeader: envs.TRUST_IDENTITY_HEADER
+});

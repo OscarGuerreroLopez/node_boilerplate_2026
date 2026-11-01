@@ -5,24 +5,29 @@ import helmet from 'helmet';
 interface ApplyExpressEssentialsOptions {
 	corsAllowedOrigins: string[];
 	maxJsonBodySize: string;
+	allowAllOriginsWhenEmpty: boolean;
 }
 
 const ZERO = 0;
 
 export const applyExpressEssentials = (
 	app: express.Express,
-	{ corsAllowedOrigins, maxJsonBodySize }: ApplyExpressEssentialsOptions
+	{ corsAllowedOrigins, maxJsonBodySize, allowAllOriginsWhenEmpty }: ApplyExpressEssentialsOptions
 ): void => {
 	const allowedOrigins = new Set(corsAllowedOrigins);
 
-	app.use(express.urlencoded({ extended: true }));
-	app.use(express.json({ limit: maxJsonBodySize }));
+	app.use(helmet());
 	app.use(
 		cors({
 			credentials: true,
 			origin: (origin, callback) => {
-				if (origin === undefined || allowedOrigins.size === ZERO) {
+				if (origin === undefined) {
 					callback(null, true);
+					return;
+				}
+
+				if (allowedOrigins.size === ZERO) {
+					callback(null, allowAllOriginsWhenEmpty);
 					return;
 				}
 
@@ -30,5 +35,6 @@ export const applyExpressEssentials = (
 			}
 		})
 	);
-	app.use(helmet());
+	app.use(express.urlencoded({ extended: true, limit: maxJsonBodySize }));
+	app.use(express.json({ limit: maxJsonBodySize }));
 };
