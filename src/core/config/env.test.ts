@@ -13,7 +13,10 @@ const ENV_KEYS = [
 	'TRUST_IDENTITY_HEADER',
 	'SHUTDOWN_TIMEOUT_MS',
 	'RATE_LIMIT_WINDOW_MS',
-	'RATE_LIMIT_MAX'
+	'RATE_LIMIT_MAX',
+	'REQUEST_TIMEOUT_MS',
+	'HEADERS_TIMEOUT_MS',
+	'KEEP_ALIVE_TIMEOUT_MS'
 ] as const;
 const ORIGINAL_ENV = { ...process.env };
 const PORT_OVERRIDE = 1234;
@@ -24,6 +27,12 @@ const DEFAULT_RATE_LIMIT_WINDOW_MS = 60000;
 const DEFAULT_RATE_LIMIT_MAX = 120;
 const RATE_LIMIT_WINDOW_OVERRIDE = 30000;
 const RATE_LIMIT_MAX_OVERRIDE = 60;
+const DEFAULT_REQUEST_TIMEOUT_MS = 300000;
+const DEFAULT_HEADERS_TIMEOUT_MS = 60000;
+const DEFAULT_KEEP_ALIVE_TIMEOUT_MS = 5000;
+const REQUEST_TIMEOUT_OVERRIDE = 15000;
+const HEADERS_TIMEOUT_OVERRIDE = 10000;
+const KEEP_ALIVE_TIMEOUT_OVERRIDE = 7000;
 
 type EnvKey = (typeof ENV_KEYS)[number];
 
@@ -208,6 +217,46 @@ describe('envs', () => {
 
 		expect(envs.RATE_LIMIT_WINDOW_MS).toBe(DEFAULT_RATE_LIMIT_WINDOW_MS);
 		expect(envs.RATE_LIMIT_MAX).toBe(DEFAULT_RATE_LIMIT_MAX);
+	});
+
+	it('parses HTTP server timeout settings', async () => {
+		setEnv({
+			NODE_ENV: NodeEnvEnum.LOCAL,
+			API_KEY: 'test-key',
+			REQUEST_TIMEOUT_MS: String(REQUEST_TIMEOUT_OVERRIDE),
+			HEADERS_TIMEOUT_MS: String(HEADERS_TIMEOUT_OVERRIDE),
+			KEEP_ALIVE_TIMEOUT_MS: String(KEEP_ALIVE_TIMEOUT_OVERRIDE)
+		});
+
+		const envs = loadEnvs();
+
+		expect(envs.REQUEST_TIMEOUT_MS).toBe(REQUEST_TIMEOUT_OVERRIDE);
+		expect(envs.HEADERS_TIMEOUT_MS).toBe(HEADERS_TIMEOUT_OVERRIDE);
+		expect(envs.KEEP_ALIVE_TIMEOUT_MS).toBe(KEEP_ALIVE_TIMEOUT_OVERRIDE);
+	});
+
+	it('uses default HTTP server timeout settings', async () => {
+		setEnv({
+			NODE_ENV: NodeEnvEnum.LOCAL,
+			API_KEY: 'test-key'
+		});
+
+		const envs = loadEnvs();
+
+		expect(envs.REQUEST_TIMEOUT_MS).toBe(DEFAULT_REQUEST_TIMEOUT_MS);
+		expect(envs.HEADERS_TIMEOUT_MS).toBe(DEFAULT_HEADERS_TIMEOUT_MS);
+		expect(envs.KEEP_ALIVE_TIMEOUT_MS).toBe(DEFAULT_KEEP_ALIVE_TIMEOUT_MS);
+	});
+
+	it('throws when HEADERS_TIMEOUT_MS exceeds REQUEST_TIMEOUT_MS', async () => {
+		setEnv({
+			NODE_ENV: NodeEnvEnum.LOCAL,
+			API_KEY: 'test-key',
+			REQUEST_TIMEOUT_MS: '1000',
+			HEADERS_TIMEOUT_MS: '2000'
+		});
+
+		expect(() => loadEnvs()).toThrow('HEADERS_TIMEOUT_MS must be less than or equal to REQUEST_TIMEOUT_MS');
 	});
 
 	it('throws in production when API_KEY is missing', async () => {

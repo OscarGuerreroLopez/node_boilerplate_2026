@@ -50,6 +50,9 @@ TRUST_IDENTITY_HEADER=false
 CORS_ALLOWED_ORIGINS=
 MAX_JSON_BODY_SIZE=300kb
 SHUTDOWN_TIMEOUT_MS=10000
+REQUEST_TIMEOUT_MS=300000
+HEADERS_TIMEOUT_MS=60000
+KEEP_ALIVE_TIMEOUT_MS=5000
 RATE_LIMIT_WINDOW_MS=60000
 RATE_LIMIT_MAX=120
 ```
@@ -76,6 +79,12 @@ above the limit receive a structured `413` response.
 
 `SHUTDOWN_TIMEOUT_MS` is the grace period for active requests during `SIGINT` or `SIGTERM`.
 Remaining connections are closed after the timeout.
+
+`REQUEST_TIMEOUT_MS`, `HEADERS_TIMEOUT_MS`, and `KEEP_ALIVE_TIMEOUT_MS` set the HTTP server
+timeouts in milliseconds. Defaults are 300000 (5 minutes), 60000 (1 minute), and 5000
+(5 seconds). `HEADERS_TIMEOUT_MS` must be less than or equal to `REQUEST_TIMEOUT_MS`.
+`KEEP_ALIVE_TIMEOUT_MS` should exceed the reverse proxy idle timeout, otherwise the proxy may
+close connections and return 502 responses.
 
 `RATE_LIMIT_WINDOW_MS` and `RATE_LIMIT_MAX` set the per-IP request limit. Window uses milliseconds:
 use `60000` for 60 seconds; `60` means 60 milliseconds. Defaults are 60 seconds and 120 requests.

@@ -3,6 +3,9 @@ import express from 'express';
 import { startServer } from './start-server';
 
 const SHUTDOWN_TIMEOUT_MS = 100;
+const REQUEST_TIMEOUT_MS = 5000;
+const HEADERS_TIMEOUT_MS = 3000;
+const KEEP_ALIVE_TIMEOUT_MS = 2000;
 const ENTRY_FILE = 'src/start-server.test.ts';
 
 afterEach(() => {
@@ -18,11 +21,17 @@ describe('startServer', () => {
 			app: express(),
 			port: 0,
 			entryFile: ENTRY_FILE,
-			shutdownTimeoutMs: SHUTDOWN_TIMEOUT_MS
+			shutdownTimeoutMs: SHUTDOWN_TIMEOUT_MS,
+			requestTimeoutMs: REQUEST_TIMEOUT_MS,
+			headersTimeoutMs: HEADERS_TIMEOUT_MS,
+			keepAliveTimeoutMs: KEEP_ALIVE_TIMEOUT_MS
 		});
 
 		expect(runningServer).toBeDefined();
 		expect(runningServer?.server.listening).toBe(true);
+		expect(runningServer?.server.requestTimeout).toBe(REQUEST_TIMEOUT_MS);
+		expect(runningServer?.server.headersTimeout).toBe(HEADERS_TIMEOUT_MS);
+		expect(runningServer?.server.keepAliveTimeout).toBe(KEEP_ALIVE_TIMEOUT_MS);
 
 		await runningServer?.shutdown('SIGTERM');
 
@@ -37,7 +46,10 @@ describe('startServer', () => {
 			app: express(),
 			port: 0,
 			entryFile: ENTRY_FILE,
-			shutdownTimeoutMs: SHUTDOWN_TIMEOUT_MS
+			shutdownTimeoutMs: SHUTDOWN_TIMEOUT_MS,
+			requestTimeoutMs: REQUEST_TIMEOUT_MS,
+			headersTimeoutMs: HEADERS_TIMEOUT_MS,
+			keepAliveTimeoutMs: KEEP_ALIVE_TIMEOUT_MS
 		});
 
 		runningServer?.server.emit('error', new Error('runtime failure'));
@@ -68,7 +80,10 @@ describe('startServer', () => {
 			app: express(),
 			port: address.port,
 			entryFile: ENTRY_FILE,
-			shutdownTimeoutMs: SHUTDOWN_TIMEOUT_MS
+			shutdownTimeoutMs: SHUTDOWN_TIMEOUT_MS,
+			requestTimeoutMs: REQUEST_TIMEOUT_MS,
+			headersTimeoutMs: HEADERS_TIMEOUT_MS,
+			keepAliveTimeoutMs: KEEP_ALIVE_TIMEOUT_MS
 		});
 
 		expect(runningServer).toBeUndefined();

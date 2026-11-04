@@ -7,6 +7,9 @@ interface StartServerParams {
 	port: number;
 	entryFile: string;
 	shutdownTimeoutMs: number;
+	requestTimeoutMs: number;
+	headersTimeoutMs: number;
+	keepAliveTimeoutMs: number;
 }
 
 interface RunningServer {
@@ -85,7 +88,10 @@ export async function startServer({
 	app,
 	port,
 	entryFile,
-	shutdownTimeoutMs
+	shutdownTimeoutMs,
+	requestTimeoutMs,
+	headersTimeoutMs,
+	keepAliveTimeoutMs
 }: StartServerParams): Promise<RunningServer | undefined> {
 	const scopedLogger = createLogger({
 		file: entryFile,
@@ -94,6 +100,10 @@ export async function startServer({
 
 	try {
 		const server = app.listen(port);
+
+		server.requestTimeout = requestTimeoutMs;
+		server.headersTimeout = headersTimeoutMs;
+		server.keepAliveTimeout = keepAliveTimeoutMs;
 
 		await waitForListening(server);
 
