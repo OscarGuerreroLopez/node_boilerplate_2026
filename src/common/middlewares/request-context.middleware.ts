@@ -6,23 +6,26 @@ import { envs } from '@core/config';
 
 interface RequestContextMiddlewareOptions {
 	trustIdentityHeader: boolean;
+	trustProxy: boolean;
 }
 
 type RequestContextMiddleware = (req: Request, res: Response, next: NextFunction) => void;
 
 export const makeRequestContextMiddleware = ({
-	trustIdentityHeader
+	trustIdentityHeader,
+	trustProxy
 }: RequestContextMiddlewareOptions): RequestContextMiddleware => {
 	return (req, _res, next): void => {
 		const headerCode = req.headers.code;
 		const codeFromHeader = Array.isArray(headerCode) ? headerCode[0] : headerCode;
 
 		req.code = typeof codeFromHeader === 'string' && isUuid(codeFromHeader) ? codeFromHeader : randomUUID();
-		req.user = trustIdentityHeader ? parseUserHeader(req.headers[TRUSTED_IDENTITY_HEADER]) : undefined;
+		req.user = trustIdentityHeader && trustProxy ? parseUserHeader(req.headers[TRUSTED_IDENTITY_HEADER]) : undefined;
 		next();
 	};
 };
 
 export const requestContextMiddleware = makeRequestContextMiddleware({
-	trustIdentityHeader: envs.TRUST_IDENTITY_HEADER
+	trustIdentityHeader: envs.TRUST_IDENTITY_HEADER,
+	trustProxy: envs.TRUST_PROXY
 });

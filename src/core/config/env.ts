@@ -4,6 +4,7 @@ import { NodeEnvEnum } from '@common/types';
 
 const NODE_ENVS = Object.values(NodeEnvEnum);
 const DEFAULT_API_KEY = 'local-api-key';
+const MIN_PRODUCTION_API_KEY_LENGTH = 32;
 const DEFAULT_API_PREFIX = '/api/v1';
 const DEFAULT_RATE_LIMIT_WINDOW_MS = 60_000;
 const DEFAULT_RATE_LIMIT_MAX = 120;
@@ -53,8 +54,14 @@ const KEEP_ALIVE_TIMEOUT_MS = get('KEEP_ALIVE_TIMEOUT_MS')
 const SAMPLE_PORT = get('SAMPLE_PORT').default('9000').asPortNumber();
 const PORT = get('PORT').default(String(SAMPLE_PORT)).asPortNumber();
 
-if (NODE_ENV === NodeEnvEnum.PRODUCTION && (API_KEY.trim().length === 0 || API_KEY === DEFAULT_API_KEY)) {
+const normalizedApiKey = API_KEY.trim();
+
+if (NODE_ENV === NodeEnvEnum.PRODUCTION && (normalizedApiKey.length === 0 || normalizedApiKey === DEFAULT_API_KEY)) {
 	throw new Error('API_KEY must be set to a non-default value in production');
+}
+
+if (NODE_ENV === NodeEnvEnum.PRODUCTION && normalizedApiKey.length < MIN_PRODUCTION_API_KEY_LENGTH) {
+	throw new Error(`API_KEY must be at least ${MIN_PRODUCTION_API_KEY_LENGTH} characters in production`);
 }
 
 if (HEADERS_TIMEOUT_MS > REQUEST_TIMEOUT_MS) {

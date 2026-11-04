@@ -7,11 +7,11 @@ import { requestContextMiddleware } from './request-context.middleware';
 const EXPECTED_API_KEY = 'expected-api-key';
 const FORBIDDEN_CODE = '7c9e6679-7425-40de-944b-e07fc1f90ae7';
 
-const buildApp = (): express.Express => {
+const buildApp = (expectedApiKey = EXPECTED_API_KEY): express.Express => {
 	const app = express();
 
 	app.use(requestContextMiddleware);
-	app.get('/protected', makeApiKeyMiddleware({ getExpectedApiKey: () => EXPECTED_API_KEY }), (_req, res): void => {
+	app.get('/protected', makeApiKeyMiddleware({ getExpectedApiKey: () => expectedApiKey }), (_req, res): void => {
 		res.json({ ok: true });
 	});
 
@@ -24,6 +24,36 @@ describe('makeApiKeyMiddleware', () => {
 
 		expect(response.status).toBe(HTTP_STATUS.OK);
 		expect(response.body).toEqual({ ok: true });
+	});
+
+	it('trims whitespace from the provided API key before comparison', async () => {
+		const response = await request(buildApp()).get('/protected').set('x-api-key', `  ${EXPECTED_API_KEY}  `);
+
+		expect(response.status).toBe(HTTP_STATUS.OK);
+		expect(response.body).toEqual({ ok: true });
+	});
+
+	it('trims whitespace from the expected API key before comparison', async () => {
+		const response = await request(buildApp(`  ${EXPECTED_API_KEY}  `))
+			.get('/protected')
+			.set('x-api-key', EXPECTED_API_KEY);
+
+		expect(response.status).toBe(HTTP_STATUS.OK);
+		expect(response.body).toEqual({ ok: true });
+	});
+
+	it('rejects an empty expected API key', async () => {
+		const response = await request(buildApp('   '))
+			.get('/protected')
+			.set('x-api-key', '   ')
+			.set('code', FORBIDDEN_CODE);
+
+		expect(response.status).toBe(HTTP_STATUS.FORBIDDEN);
+		expect(response.body).toEqual({
+			name: 'ForbiddenError',
+			message: 'Invalid apiKey',
+			code: FORBIDDEN_CODE
+		});
 	});
 
 	it.each([

@@ -88,7 +88,7 @@ New versioned feature routes must be exported and registered in the appropriate 
 - Apply route-level API-key validation according to the existing middleware patterns.
 - Request body limits are configured once for JSON and URL-encoded parsers through `MAX_JSON_BODY_SIZE`.
 - Follow the established request-context conventions for accessing `req.user`, `req.code` and other request-scoped data.
-- Identity is read only from `x-authenticated-user` and only when `TRUST_IDENTITY_HEADER=true`. Enable it only behind a trusted gateway that strips client-supplied identity headers. The legacy `user` header is ignored.
+- Identity is read only from `x-authenticated-user` and only when `TRUST_IDENTITY_HEADER=true` and `TRUST_PROXY=true`. Enable it only behind a trusted gateway that strips client-supplied identity headers. Only `id`, `email`, `name`, and `role` are retained. The legacy `user` header is ignored.
 - Use `createLogger` from `@core/logger` where appropriate.
 - Preserve existing error-handling conventions unless a change is explicitly required.
 

@@ -5,7 +5,7 @@ export const TRUSTED_IDENTITY_HEADER = 'x-authenticated-user';
 const PASSWORD_KEY = 'password';
 const MAX_IDENTITY_HEADER_LENGTH = 8192;
 const UNSAFE_KEYS = new Set(['__proto__', 'constructor', 'prototype']);
-const USER_STRING_FIELDS = ['id', 'email', 'name', 'role'] as const;
+const USER_ALLOWED_FIELDS = ['id', 'email', 'name', 'role'] as const;
 
 const normaliseKey = (key: string): string => key.toLowerCase().replace(/[^a-z0-9]/g, '');
 
@@ -43,14 +43,16 @@ const removePasswordFields = (value: unknown): unknown => {
 };
 
 const hasValidUserShape = (value: Record<string, unknown>): boolean =>
-	USER_STRING_FIELDS.every((field) => value[field] === undefined || typeof value[field] === 'string');
+	USER_ALLOWED_FIELDS.every((field) => value[field] === undefined || typeof value[field] === 'string');
 
 const toUser = (value: Record<string, unknown>): User => {
 	const user: User = {};
 
-	for (const [key, entry] of Object.entries(value)) {
-		if (!UNSAFE_KEYS.has(key)) {
-			user[key] = entry;
+	for (const field of USER_ALLOWED_FIELDS) {
+		const entry = value[field];
+
+		if (typeof entry === 'string') {
+			user[field] = entry;
 		}
 	}
 

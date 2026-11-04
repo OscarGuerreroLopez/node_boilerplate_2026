@@ -58,7 +58,9 @@ RATE_LIMIT_MAX=120
 ```
 
 `PORT` takes precedence over the legacy `SAMPLE_PORT` fallback. `API_KEY` must be set to a
-non-default value when `NODE_ENV=production`, otherwise the process refuses to start.
+non-default value of at least 32 characters when `NODE_ENV=production`, otherwise the process
+refuses to start. Store production keys in a secret manager. API keys are trimmed before
+comparison.
 
 `CORS_ALLOWED_ORIGINS` is a comma-separated allowlist. When it is empty, local and test
 environments allow all origins, while production denies browser origins that are not listed.
@@ -69,10 +71,11 @@ HTTP auth credentials.
 `TRUST_PROXY` controls Express proxy trust and defaults to `false`. Enable it only when the app
 runs behind a trusted proxy that sets client IP headers.
 
-`TRUST_IDENTITY_HEADER` defaults to `false`. When enabled, the app reads identity only from the
-`x-authenticated-user` header as JSON. Enable it only behind a trusted gateway that strips any
-client-supplied identity headers before adding its own. The legacy `user` header is always
-ignored.
+`TRUST_IDENTITY_HEADER` defaults to `false`. When enabled together with `TRUST_PROXY=true`, the
+app reads identity only from the `x-authenticated-user` header as JSON. Enable it only behind a
+trusted gateway that strips any client-supplied identity headers before adding its own. The
+legacy `user` header is always ignored. Only `id`, `email`, `name`, and `role` are retained from
+the identity header.
 
 `MAX_JSON_BODY_SIZE` limits both JSON and URL-encoded request bodies at the parser level. Requests
 above the limit receive a structured `413` response.
@@ -127,8 +130,8 @@ curl "http://localhost:9000/api/v1/sample?name=Oscar" \
   -H "x-api-key: your-local-api-key"
 ```
 
-To exercise identity locally, set `TRUST_IDENTITY_HEADER=true` and send a JSON
-`x-authenticated-user` header. Do not trust this header outside a controlled gateway.
+To exercise identity locally, set `TRUST_PROXY=true` and `TRUST_IDENTITY_HEADER=true`, then send
+a JSON `x-authenticated-user` header. Do not trust this header outside a controlled gateway.
 
 ## Architecture
 

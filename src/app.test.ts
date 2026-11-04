@@ -58,6 +58,46 @@ describe('app', () => {
 		});
 	});
 
+	it('returns trusted identity only when behind a trusted proxy', async () => {
+		const trustedProxyApp = makeTestApp({
+			TRUST_PROXY: true,
+			TRUST_IDENTITY_HEADER: true
+		});
+		const response = await request(trustedProxyApp)
+			.get('/api/v1/sample?name=Oscar')
+			.set('x-api-key', expectedApiKey)
+			.set(
+				'x-authenticated-user',
+				JSON.stringify({
+					id: 'u-1',
+					email: 'oscar@example.com',
+					role: 'admin',
+					admin: true
+				})
+			);
+
+		expect(response.status).toBe(HTTP_STATUS.OK);
+		expect(response.body.user).toEqual({
+			id: 'u-1',
+			email: 'oscar@example.com',
+			role: 'admin'
+		});
+	});
+
+	it('does not return trusted identity when not behind a proxy', async () => {
+		const directApp = makeTestApp({
+			TRUST_PROXY: false,
+			TRUST_IDENTITY_HEADER: true
+		});
+		const response = await request(directApp)
+			.get('/api/v1/sample?name=Oscar')
+			.set('x-api-key', expectedApiKey)
+			.set('x-authenticated-user', JSON.stringify({ id: 'u-1' }));
+
+		expect(response.status).toBe(HTTP_STATUS.OK);
+		expect(response.body.user).toBeUndefined();
+	});
+
 	it('returns bad request when name is invalid', async () => {
 		const response = await request(app)
 			.get('/api/v1/sample?name=%20%20%20')

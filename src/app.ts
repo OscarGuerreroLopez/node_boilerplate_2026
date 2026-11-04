@@ -8,8 +8,8 @@ import {
 	applyExpressSecurity,
 	errorHandlerMiddleware,
 	makeRateLimitMiddleware,
+	makeRequestContextMiddleware,
 	notFoundMiddleware,
-	requestContextMiddleware,
 	requestLoggingMiddleware
 } from '@common/middlewares';
 
@@ -17,7 +17,12 @@ export const createApp = (configuration: typeof envs): express.Express => {
 	const app = express();
 
 	app.set('trust proxy', configuration.TRUST_PROXY);
-	app.use(requestContextMiddleware);
+	app.use(
+		makeRequestContextMiddleware({
+			trustIdentityHeader: configuration.TRUST_IDENTITY_HEADER,
+			trustProxy: configuration.TRUST_PROXY
+		})
+	);
 	app.use(requestLoggingMiddleware);
 	applyExpressSecurity(app, {
 		corsAllowedOrigins: configuration.CORS_ALLOWED_ORIGINS,

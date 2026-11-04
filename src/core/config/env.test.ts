@@ -33,6 +33,9 @@ const DEFAULT_KEEP_ALIVE_TIMEOUT_MS = 5000;
 const REQUEST_TIMEOUT_OVERRIDE = 15000;
 const HEADERS_TIMEOUT_OVERRIDE = 10000;
 const KEEP_ALIVE_TIMEOUT_OVERRIDE = 7000;
+const MIN_PRODUCTION_API_KEY_LENGTH = 32;
+const SHORT_PRODUCTION_API_KEY = 'a'.repeat(MIN_PRODUCTION_API_KEY_LENGTH - 1);
+const VALID_PRODUCTION_API_KEY = 'a'.repeat(MIN_PRODUCTION_API_KEY_LENGTH);
 
 type EnvKey = (typeof ENV_KEYS)[number];
 
@@ -285,14 +288,45 @@ describe('envs', () => {
 		expect(() => loadEnvs()).toThrow('API_KEY must be set to a non-default value in production');
 	});
 
-	it('allows production with a custom API_KEY', async () => {
+	it('throws in production when API_KEY is too short', async () => {
 		setEnv({
 			NODE_ENV: NodeEnvEnum.PRODUCTION,
-			API_KEY: 'production-key'
+			API_KEY: SHORT_PRODUCTION_API_KEY
+		});
+
+		expect(() => loadEnvs()).toThrow(
+			`API_KEY must be at least ${MIN_PRODUCTION_API_KEY_LENGTH} characters in production`
+		);
+	});
+
+	it('throws in production when API_KEY is the default after trimming', async () => {
+		setEnv({
+			NODE_ENV: NodeEnvEnum.PRODUCTION,
+			API_KEY: '  local-api-key  '
+		});
+
+		expect(() => loadEnvs()).toThrow('API_KEY must be set to a non-default value in production');
+	});
+
+	it('allows production with a valid API_KEY', async () => {
+		setEnv({
+			NODE_ENV: NodeEnvEnum.PRODUCTION,
+			API_KEY: VALID_PRODUCTION_API_KEY
 		});
 
 		const envs = loadEnvs();
 
-		expect(envs.API_KEY).toBe('production-key');
+		expect(envs.API_KEY).toBe(VALID_PRODUCTION_API_KEY);
+	});
+
+	it('trims API_KEY before checking production length', async () => {
+		setEnv({
+			NODE_ENV: NodeEnvEnum.PRODUCTION,
+			API_KEY: `  ${VALID_PRODUCTION_API_KEY}  `
+		});
+
+		const envs = loadEnvs();
+
+		expect(envs.API_KEY).toBe(`  ${VALID_PRODUCTION_API_KEY}  `);
 	});
 });
