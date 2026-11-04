@@ -50,6 +50,8 @@ TRUST_IDENTITY_HEADER=false
 CORS_ALLOWED_ORIGINS=
 MAX_JSON_BODY_SIZE=300kb
 SHUTDOWN_TIMEOUT_MS=10000
+RATE_LIMIT_WINDOW_MS=60000
+RATE_LIMIT_MAX=120
 ```
 
 `PORT` takes precedence over the legacy `SAMPLE_PORT` fallback. `API_KEY` must be set to a
@@ -72,6 +74,13 @@ above the limit receive a structured `413` response.
 
 `SHUTDOWN_TIMEOUT_MS` is the grace period for active requests during `SIGINT` or `SIGTERM`.
 Remaining connections are closed after the timeout.
+
+`RATE_LIMIT_WINDOW_MS` and `RATE_LIMIT_MAX` set the per-IP request limit. Window uses milliseconds:
+use `60000` for 60 seconds; `60` means 60 milliseconds. Defaults are 60 seconds and 120 requests.
+The app skips rate limiting when `TRUST_PROXY=true`, because that setting means
+requests arrive through a trusted service that owns rate limiting. Do not expose the app directly
+when this mode is enabled. `/health` is exempt for health probes. The built-in memory store is for
+a single app process; use a shared store when running multiple instances.
 
 ## Run
 
@@ -129,9 +138,11 @@ When persistence is needed, the use case also calls a data-access adapter.
 ### Middleware Stack
 1. **Request Context** - Extracts `code` (request ID) and, when enabled, trusted gateway identity
 2. **Request Logging** - Logs method, route, status, duration and request code after each response
-3. **Express Essentials** - Body parsing with size limits, CORS and Helmet security
-4. **API Key Validation** - Applied per-route to protected endpoints
-5. **Not Found and Error Handling** - Returns structured `404` and safe `500` responses
+3. **Express Security** - CORS and Helmet security
+4. **Rate Limiting** - Per-IP limit when `TRUST_PROXY=false`, except `/health`
+5. **Body Parsing** - JSON and URL-encoded body size limits
+6. **API Key Validation** - Applied per-route to protected endpoints
+7. **Not Found and Error Handling** - Returns structured `404` and safe `500` responses
 
 Example of adding authentication to a route:
 ```typescript

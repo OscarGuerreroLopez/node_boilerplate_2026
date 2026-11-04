@@ -5,6 +5,8 @@ import { NodeEnvEnum } from '@common/types';
 const NODE_ENVS = Object.values(NodeEnvEnum);
 const DEFAULT_API_KEY = 'local-api-key';
 const DEFAULT_API_PREFIX = '/api/v1';
+const DEFAULT_RATE_LIMIT_WINDOW_MS = 60_000;
+const DEFAULT_RATE_LIMIT_MAX = 120;
 const API_PREFIX_PATTERN = /^\/[a-z0-9/_-]*$/i;
 
 const normalizeApiPrefix = (value: string): string => {
@@ -37,6 +39,8 @@ const API_PREFIX = normalizeApiPrefix(get('API_PREFIX').default(DEFAULT_API_PREF
 const TRUST_PROXY = get('TRUST_PROXY').default('false').asBoolStrict();
 const TRUST_IDENTITY_HEADER = get('TRUST_IDENTITY_HEADER').default('false').asBoolStrict();
 const SHUTDOWN_TIMEOUT_MS = get('SHUTDOWN_TIMEOUT_MS').default('10000').asIntPositive();
+const RATE_LIMIT_WINDOW_MS = get('RATE_LIMIT_WINDOW_MS').default(String(DEFAULT_RATE_LIMIT_WINDOW_MS)).asIntPositive();
+const RATE_LIMIT_MAX = get('RATE_LIMIT_MAX').default(String(DEFAULT_RATE_LIMIT_MAX)).asIntPositive();
 
 const SAMPLE_PORT = get('SAMPLE_PORT').default('9000').asPortNumber();
 const PORT = get('PORT').default(String(SAMPLE_PORT)).asPortNumber();
@@ -54,6 +58,8 @@ export const envs = {
 	TRUST_PROXY,
 	TRUST_IDENTITY_HEADER,
 	SHUTDOWN_TIMEOUT_MS,
+	RATE_LIMIT_WINDOW_MS,
+	RATE_LIMIT_MAX,
 	CORS_ALLOWED_ORIGINS,
 	MAX_JSON_BODY_SIZE
 };

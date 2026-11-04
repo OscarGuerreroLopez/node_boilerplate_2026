@@ -8,11 +8,20 @@ interface ApplyExpressEssentialsOptions {
 	allowAllOriginsWhenEmpty: boolean;
 }
 
+interface ApplyExpressSecurityOptions {
+	corsAllowedOrigins: string[];
+	allowAllOriginsWhenEmpty: boolean;
+}
+
+interface ApplyBodyParsersOptions {
+	maxJsonBodySize: string;
+}
+
 const ZERO = 0;
 
-export const applyExpressEssentials = (
+export const applyExpressSecurity = (
 	app: express.Express,
-	{ corsAllowedOrigins, maxJsonBodySize, allowAllOriginsWhenEmpty }: ApplyExpressEssentialsOptions
+	{ corsAllowedOrigins, allowAllOriginsWhenEmpty }: ApplyExpressSecurityOptions
 ): void => {
 	const allowedOrigins = new Set(corsAllowedOrigins);
 
@@ -35,6 +44,17 @@ export const applyExpressEssentials = (
 			}
 		})
 	);
+};
+
+export const applyBodyParsers = (app: express.Express, { maxJsonBodySize }: ApplyBodyParsersOptions): void => {
 	app.use(express.urlencoded({ extended: true, limit: maxJsonBodySize }));
 	app.use(express.json({ limit: maxJsonBodySize }));
+};
+
+export const applyExpressEssentials = (
+	app: express.Express,
+	{ corsAllowedOrigins, maxJsonBodySize, allowAllOriginsWhenEmpty }: ApplyExpressEssentialsOptions
+): void => {
+	applyExpressSecurity(app, { corsAllowedOrigins, allowAllOriginsWhenEmpty });
+	applyBodyParsers(app, { maxJsonBodySize });
 };

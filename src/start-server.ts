@@ -9,7 +9,7 @@ interface StartServerParams {
 	shutdownTimeoutMs: number;
 }
 
-export interface RunningServer {
+interface RunningServer {
 	server: Server;
 	shutdown: (signal: string) => Promise<void>;
 }
@@ -134,7 +134,7 @@ export async function startServer({
 			process.once(signal, handleSignal);
 		}
 
-		scopedLogger.info(`Listening:${port}`, { code: 'noCode' });
+		scopedLogger.info(`Listening:${port}`, { code: 'noCode', timeoutMs: shutdownTimeoutMs });
 
 		return { server, shutdown };
 	} catch (error) {

@@ -11,13 +11,19 @@ const ENV_KEYS = [
 	'API_PREFIX',
 	'TRUST_PROXY',
 	'TRUST_IDENTITY_HEADER',
-	'SHUTDOWN_TIMEOUT_MS'
+	'SHUTDOWN_TIMEOUT_MS',
+	'RATE_LIMIT_WINDOW_MS',
+	'RATE_LIMIT_MAX'
 ] as const;
 const ORIGINAL_ENV = { ...process.env };
 const PORT_OVERRIDE = 1234;
 const SAMPLE_PORT_OVERRIDE = 5678;
 const SHUTDOWN_TIMEOUT_OVERRIDE = 5000;
 const DEFAULT_SHUTDOWN_TIMEOUT_MS = 10000;
+const DEFAULT_RATE_LIMIT_WINDOW_MS = 60000;
+const DEFAULT_RATE_LIMIT_MAX = 120;
+const RATE_LIMIT_WINDOW_OVERRIDE = 30000;
+const RATE_LIMIT_MAX_OVERRIDE = 60;
 
 type EnvKey = (typeof ENV_KEYS)[number];
 
@@ -176,6 +182,32 @@ describe('envs', () => {
 		const envs = loadEnvs();
 
 		expect(envs.SHUTDOWN_TIMEOUT_MS).toBe(DEFAULT_SHUTDOWN_TIMEOUT_MS);
+	});
+
+	it('parses rate limit settings', async () => {
+		setEnv({
+			NODE_ENV: NodeEnvEnum.LOCAL,
+			API_KEY: 'test-key',
+			RATE_LIMIT_WINDOW_MS: String(RATE_LIMIT_WINDOW_OVERRIDE),
+			RATE_LIMIT_MAX: String(RATE_LIMIT_MAX_OVERRIDE)
+		});
+
+		const envs = loadEnvs();
+
+		expect(envs.RATE_LIMIT_WINDOW_MS).toBe(RATE_LIMIT_WINDOW_OVERRIDE);
+		expect(envs.RATE_LIMIT_MAX).toBe(RATE_LIMIT_MAX_OVERRIDE);
+	});
+
+	it('uses default rate limit settings', async () => {
+		setEnv({
+			NODE_ENV: NodeEnvEnum.LOCAL,
+			API_KEY: 'test-key'
+		});
+
+		const envs = loadEnvs();
+
+		expect(envs.RATE_LIMIT_WINDOW_MS).toBe(DEFAULT_RATE_LIMIT_WINDOW_MS);
+		expect(envs.RATE_LIMIT_MAX).toBe(DEFAULT_RATE_LIMIT_MAX);
 	});
 
 	it('throws in production when API_KEY is missing', async () => {

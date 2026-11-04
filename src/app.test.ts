@@ -1,8 +1,22 @@
 import request from 'supertest';
 import { HTTP_STATUS } from '@common/constants';
-import app from './app';
+import { envs } from '@core/config';
+import { createApp } from './app';
 
 const expectedApiKey = process.env.API_KEY ?? 'local-api-key';
+const TEST_RATE_LIMIT_WINDOW_MS = 60000;
+const TEST_RATE_LIMIT_MAX = 120;
+
+const makeTestApp = (overrides: Partial<typeof envs> = {}): ReturnType<typeof createApp> =>
+	createApp({
+		...envs,
+		TRUST_PROXY: false,
+		RATE_LIMIT_WINDOW_MS: TEST_RATE_LIMIT_WINDOW_MS,
+		RATE_LIMIT_MAX: TEST_RATE_LIMIT_MAX,
+		...overrides
+	});
+
+const app = makeTestApp();
 
 describe('app', () => {
 	it('returns health response', async () => {
@@ -77,5 +91,22 @@ describe('app', () => {
 			message: 'Invalid JSON body',
 			code: 'invalid-json-code'
 		});
+	});
+
+	it('limits direct requests when TRUST_PROXY is false', async () => {
+		const limitedApp = makeTestApp({ RATE_LIMIT_MAX: 1 });
+		const firstResponse = await request(limitedApp).get('/api/v1/sample').set('x-api-key', expectedApiKey);
+		const secondResponse = await request(limitedApp).get('/api/v1/sample').set('x-api-key', expectedApiKey);
+
+		expect(firstResponse.status).toBe(HTTP_STATUS.OK);
+		expect(secondResponse.status).toBe(HTTP_STATUS.TOO_MANY_REQUESTS);
+	});
+
+	it('does not limit requests when TRUST_PROXY is true', async () => {
+		const trustedProxyApp = makeTestApp({ TRUST_PROXY: true, RATE_LIMIT_MAX: 1 });
+		const firstResponse = await request(trustedProxyApp).get('/api/v1/sample').set('x-api-key', expectedApiKey);
+		const secondResponse = await request(trustedProxyApp).get('/api/v1/sample').set('x-api-key', expectedApiKey);
+
+		expect([firstResponse.status, secondResponse.status]).toEqual([HTTP_STATUS.OK, HTTP_STATUS.OK]);
 	});
 });

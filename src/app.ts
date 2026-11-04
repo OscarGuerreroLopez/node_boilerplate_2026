@@ -4,26 +4,41 @@ import { NodeEnvEnum } from '@common/types';
 import { HealthRoutes } from '@features/health';
 import { V1Routes } from '@versions';
 import {
-	applyExpressEssentials,
+	applyBodyParsers,
+	applyExpressSecurity,
 	errorHandlerMiddleware,
+	makeRateLimitMiddleware,
 	notFoundMiddleware,
 	requestContextMiddleware,
 	requestLoggingMiddleware
 } from '@common/middlewares';
 
-const app = express();
+export const createApp = (configuration: typeof envs): express.Express => {
+	const app = express();
 
-app.set('trust proxy', envs.TRUST_PROXY);
-app.use(requestContextMiddleware);
-app.use(requestLoggingMiddleware);
-applyExpressEssentials(app, {
-	corsAllowedOrigins: envs.CORS_ALLOWED_ORIGINS,
-	maxJsonBodySize: envs.MAX_JSON_BODY_SIZE,
-	allowAllOriginsWhenEmpty: envs.NODE_ENV !== NodeEnvEnum.PRODUCTION
-});
-app.use(HealthRoutes.routes);
-app.use(envs.API_PREFIX, V1Routes.routes);
-app.use(notFoundMiddleware);
-app.use(errorHandlerMiddleware);
+	app.set('trust proxy', configuration.TRUST_PROXY);
+	app.use(requestContextMiddleware);
+	app.use(requestLoggingMiddleware);
+	applyExpressSecurity(app, {
+		corsAllowedOrigins: configuration.CORS_ALLOWED_ORIGINS,
+		allowAllOriginsWhenEmpty: configuration.NODE_ENV !== NodeEnvEnum.PRODUCTION
+	});
+	app.use(
+		makeRateLimitMiddleware({
+			enabled: !configuration.TRUST_PROXY,
+			windowMs: configuration.RATE_LIMIT_WINDOW_MS,
+			maxRequests: configuration.RATE_LIMIT_MAX
+		})
+	);
+	applyBodyParsers(app, { maxJsonBodySize: configuration.MAX_JSON_BODY_SIZE });
+	app.use(HealthRoutes.routes);
+	app.use(configuration.API_PREFIX, V1Routes.routes);
+	app.use(notFoundMiddleware);
+	app.use(errorHandlerMiddleware);
+
+	return app;
+};
+
+const app = createApp(envs);
 
 export default app;

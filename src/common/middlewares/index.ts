@@ -6,6 +6,7 @@ export * from './essentials.middleware';
 export * from './not-found.middleware';
 export * from './request-context.middleware';
 export * from './request-logging.middleware';
+export * from './rate-limit.middleware';
 
 export const credentialsMiddleware = makeApiKeyMiddleware({
 	getExpectedApiKey: () => envs.API_KEY
