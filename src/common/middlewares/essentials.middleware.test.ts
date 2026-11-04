@@ -55,6 +55,19 @@ describe('applyExpressEssentials CORS behavior', () => {
 		const response = await request(app).get('/test').set('origin', 'http://example.com');
 
 		expect(response.headers['access-control-allow-origin']).toBe('http://example.com');
+		expect(response.headers['access-control-allow-credentials']).toBeUndefined();
+	});
+
+	it('enables credentials for allowlisted origins', async () => {
+		const app = buildApp({
+			corsAllowedOrigins: ['http://example.com'],
+			allowAllOriginsWhenEmpty: false
+		});
+
+		const response = await request(app).get('/test').set('origin', 'http://example.com');
+
+		expect(response.headers['access-control-allow-origin']).toBe('http://example.com');
+		expect(response.headers['access-control-allow-credentials']).toBe('true');
 	});
 
 	it('denies browser origins when the allowlist is empty and empty allowlists are denied', async () => {

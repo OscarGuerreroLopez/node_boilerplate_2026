@@ -59,7 +59,9 @@ non-default value when `NODE_ENV=production`, otherwise the process refuses to s
 
 `CORS_ALLOWED_ORIGINS` is a comma-separated allowlist. When it is empty, local and test
 environments allow all origins, while production denies browser origins that are not listed.
-Requests without an `Origin` header are always allowed.
+Requests without an `Origin` header are always allowed. Credentials are enabled only when the
+allowlist is non-empty; an empty allowlist allows all origins without cross-origin cookies or
+HTTP auth credentials.
 
 `TRUST_PROXY` controls Express proxy trust and defaults to `false`. Enable it only when the app
 runs behind a trusted proxy that sets client IP headers.

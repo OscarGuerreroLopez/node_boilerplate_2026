@@ -28,7 +28,7 @@ export const applyExpressSecurity = (
 	app.use(helmet());
 	app.use(
 		cors({
-			credentials: true,
+			credentials: allowedOrigins.size > ZERO,
 			origin: (origin, callback) => {
 				if (origin === undefined) {
 					callback(null, true);
