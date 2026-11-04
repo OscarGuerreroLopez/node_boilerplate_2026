@@ -4,6 +4,8 @@ import { HTTP_STATUS } from '@common/constants';
 import { requestContextMiddleware } from './request-context.middleware';
 import { requestLoggingMiddleware } from './request-logging.middleware';
 
+const REQUEST_CODE = '3f2504e0-4f89-41d3-9a0c-0305e82c3301';
+
 const buildApp = (): express.Express => {
 	const app = express();
 
@@ -32,14 +34,14 @@ describe('requestLoggingMiddleware', () => {
 		const logSpy = jest.spyOn(console, 'log').mockImplementation(() => undefined);
 		const app = buildApp();
 
-		await request(app).get('/ok?secret=value').set('code', 'request-code');
+		await request(app).get('/ok?secret=value').set('code', REQUEST_CODE);
 		await waitForFinishListener();
 
 		expect(logSpy).toHaveBeenCalledWith(
 			expect.objectContaining({
 				level: 'info',
 				message: 'request completed',
-				code: 'request-code',
+				code: REQUEST_CODE,
 				method: 'GET',
 				route: '/ok',
 				statusCode: 200,

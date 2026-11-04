@@ -147,7 +147,7 @@ HTTP request → Route → Controller → Use case → Domain logic → Response
 When persistence is needed, the use case also calls a data-access adapter.
 
 ### Middleware Stack
-1. **Request Context** - Extracts `code` (request ID) and, when enabled, trusted gateway identity
+1. **Request Context** - Extracts `code` (request ID) and, when enabled, trusted gateway identity. `code` must be a canonical UUID; missing, invalid or oversized values are replaced with a random UUID.
 2. **Request Logging** - Logs method, route, status, duration and request code after each response
 3. **Express Security** - CORS and Helmet security
 4. **Rate Limiting** - Per-IP limit when `TRUST_PROXY=false`, except `/health`

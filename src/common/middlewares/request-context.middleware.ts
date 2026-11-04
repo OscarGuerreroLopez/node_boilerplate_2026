@@ -1,6 +1,7 @@
 import { randomUUID } from 'node:crypto';
 import { type NextFunction, type Request, type Response } from 'express';
 import { parseUserHeader, TRUSTED_IDENTITY_HEADER } from '@common/context';
+import { isUuid } from '@common/utils';
 import { envs } from '@core/config';
 
 interface RequestContextMiddlewareOptions {
@@ -16,7 +17,7 @@ export const makeRequestContextMiddleware = ({
 		const headerCode = req.headers.code;
 		const codeFromHeader = Array.isArray(headerCode) ? headerCode[0] : headerCode;
 
-		req.code = typeof codeFromHeader === 'string' ? codeFromHeader : randomUUID();
+		req.code = typeof codeFromHeader === 'string' && isUuid(codeFromHeader) ? codeFromHeader : randomUUID();
 		req.user = trustIdentityHeader ? parseUserHeader(req.headers[TRUSTED_IDENTITY_HEADER]) : undefined;
 		next();
 	};

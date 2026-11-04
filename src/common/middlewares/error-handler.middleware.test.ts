@@ -5,6 +5,8 @@ import { HttpError } from '@common/errors';
 import { buildErrorLogContext, errorHandlerMiddleware } from './error-handler.middleware';
 import { requestContextMiddleware } from './request-context.middleware';
 
+const UNEXPECTED_CODE = '5d41402a-bc2f-4f0b-b9f3-9f3e9f2f6d1c';
+
 const buildApp = (handler: RequestHandler): Express => {
 	const app = express();
 
@@ -49,13 +51,13 @@ describe('errorHandlerMiddleware', () => {
 			throw new Error('secret database detail');
 		});
 
-		const response = await request(app).get('/error').set('code', 'unexpected-code');
+		const response = await request(app).get('/error').set('code', UNEXPECTED_CODE);
 
 		expect(response.status).toBe(HTTP_STATUS.INTERNAL_SERVER_ERROR);
 		expect(response.body).toEqual({
 			name: 'InternalServerError',
 			message: 'Internal server error',
-			code: 'unexpected-code'
+			code: UNEXPECTED_CODE
 		});
 		expect(JSON.stringify(response.body)).not.toContain('secret database detail');
 	});

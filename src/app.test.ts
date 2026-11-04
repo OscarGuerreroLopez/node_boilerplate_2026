@@ -6,6 +6,11 @@ import { createApp } from './app';
 const expectedApiKey = process.env.API_KEY ?? 'local-api-key';
 const TEST_RATE_LIMIT_WINDOW_MS = 60000;
 const TEST_RATE_LIMIT_MAX = 120;
+const HEALTH_CODE = 'e58ed763-928c-4155-bee9-fdbaaadc15f3';
+const SAMPLE_CODE = '2f1c5d4e-1a2b-4c3d-8e9f-0123456789ab';
+const INVALID_NAME_CODE = '7c9e6679-7425-40de-944b-e07fc1f90ae7';
+const NOT_FOUND_CODE = '16fd2706-8baf-433b-82eb-8c7fada847da';
+const INVALID_JSON_CODE = '9b2f5c1e-3d4a-4b6c-8d7e-5f4a3b2c1d0e';
 
 const makeTestApp = (overrides: Partial<typeof envs> = {}): ReturnType<typeof createApp> =>
 	createApp({
@@ -20,12 +25,12 @@ const app = makeTestApp();
 
 describe('app', () => {
 	it('returns health response', async () => {
-		const response = await request(app).get('/health').set('code', 'health-code');
+		const response = await request(app).get('/health').set('code', HEALTH_CODE);
 
 		expect(response.status).toBe(HTTP_STATUS.OK);
 		expect(response.body).toEqual({
 			message: 'ok',
-			code: 'health-code'
+			code: HEALTH_CODE
 		});
 	});
 
@@ -42,14 +47,14 @@ describe('app', () => {
 		const response = await request(app)
 			.get('/api/v1/sample?name=Oscar')
 			.set('x-api-key', expectedApiKey)
-			.set('code', 'sample-code')
+			.set('code', SAMPLE_CODE)
 			.set('user', '{"id":"u-1","email":"oscar@example.com"}');
 
 		expect(response.status).toBe(HTTP_STATUS.OK);
 		expect(response.body).toEqual({
 			message: 'ok',
 			result: 'hello Oscar',
-			code: 'sample-code'
+			code: SAMPLE_CODE
 		});
 	});
 
@@ -57,24 +62,24 @@ describe('app', () => {
 		const response = await request(app)
 			.get('/api/v1/sample?name=%20%20%20')
 			.set('x-api-key', expectedApiKey)
-			.set('code', 'invalid-name-code');
+			.set('code', INVALID_NAME_CODE);
 
 		expect(response.status).toBe(HTTP_STATUS.BAD_REQUEST);
 		expect(response.body).toEqual({
 			name: 'BadRequestError',
 			message: 'Name must be a non-empty string',
-			code: 'invalid-name-code'
+			code: INVALID_NAME_CODE
 		});
 	});
 
 	it('returns a structured not found response for unknown routes', async () => {
-		const response = await request(app).get('/api/v1/unknown').set('code', 'not-found-code');
+		const response = await request(app).get('/api/v1/unknown').set('code', NOT_FOUND_CODE);
 
 		expect(response.status).toBe(HTTP_STATUS.NOT_FOUND);
 		expect(response.body).toEqual({
 			name: 'NotFoundError',
 			message: 'Route not found',
-			code: 'not-found-code'
+			code: NOT_FOUND_CODE
 		});
 	});
 
@@ -82,14 +87,14 @@ describe('app', () => {
 		const response = await request(app)
 			.post('/health')
 			.set('content-type', 'application/json')
-			.set('code', 'invalid-json-code')
+			.set('code', INVALID_JSON_CODE)
 			.send('{"name":');
 
 		expect(response.status).toBe(HTTP_STATUS.BAD_REQUEST);
 		expect(response.body).toEqual({
 			name: 'BadRequestError',
 			message: 'Invalid JSON body',
-			code: 'invalid-json-code'
+			code: INVALID_JSON_CODE
 		});
 	});
 

@@ -4,6 +4,8 @@ import { HTTP_STATUS } from '@common/constants';
 import { requestContextMiddleware } from './request-context.middleware';
 import { makeRateLimitMiddleware } from './rate-limit.middleware';
 
+const LIMITED_CODE = '16fd2706-8baf-433b-82eb-8c7fada847da';
+
 const buildApp = (enabled: boolean, maxRequests = 1): express.Express => {
 	const app = express();
 
@@ -25,13 +27,13 @@ describe('makeRateLimitMiddleware', () => {
 		const app = buildApp(true);
 
 		await request(app).get('/limited');
-		const response = await request(app).get('/limited').set('code', 'limited-code');
+		const response = await request(app).get('/limited').set('code', LIMITED_CODE);
 
 		expect(response.status).toBe(HTTP_STATUS.TOO_MANY_REQUESTS);
 		expect(response.body).toEqual({
 			name: 'TooManyRequestsError',
 			message: 'Too many requests',
-			code: 'limited-code'
+			code: LIMITED_CODE
 		});
 		expect(response.headers['ratelimit-limit']).toBe('1');
 		expect(response.headers['x-ratelimit-limit']).toBeUndefined();

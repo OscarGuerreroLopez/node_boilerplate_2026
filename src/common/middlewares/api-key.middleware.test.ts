@@ -5,6 +5,7 @@ import { makeApiKeyMiddleware } from './api-key.middleware';
 import { requestContextMiddleware } from './request-context.middleware';
 
 const EXPECTED_API_KEY = 'expected-api-key';
+const FORBIDDEN_CODE = '7c9e6679-7425-40de-944b-e07fc1f90ae7';
 
 const buildApp = (): express.Express => {
 	const app = express();
@@ -34,13 +35,13 @@ describe('makeApiKeyMiddleware', () => {
 		const response = await request(buildApp())
 			.get('/protected')
 			.set('x-api-key', providedApiKey)
-			.set('code', 'forbidden-code');
+			.set('code', FORBIDDEN_CODE);
 
 		expect(response.status).toBe(HTTP_STATUS.FORBIDDEN);
 		expect(response.body).toEqual({
 			name: 'ForbiddenError',
 			message: 'Invalid apiKey',
-			code: 'forbidden-code'
+			code: FORBIDDEN_CODE
 		});
 	});
 });

@@ -81,8 +81,25 @@ describe('sanitizeLogData', () => {
 		});
 	});
 
+	it('strips control characters from string values', () => {
+		const sanitized = sanitizeLogData({
+			message: 'line 1\nline 2\tend',
+			nested: ['safe\u0000value', { detail: 'x\u007fy\u0085z' }],
+			email: 'os\u0000car@example.com',
+			safe: 'café 🚀'
+		});
+
+		expect(sanitized).toEqual({
+			message: 'line 1line 2end',
+			nested: ['safevalue', { detail: 'xyz' }],
+			email: 'osca***@example.com',
+			safe: 'café 🚀'
+		});
+	});
+
 	it('leaves primitive and null values unchanged', () => {
 		expect(sanitizeLogData('value')).toBe('value');
+		expect(sanitizeLogData('line 1\nline 2\u0000\u007f')).toBe('line 1line 2');
 		expect(sanitizeLogData(SAMPLE_NUMBER)).toBe(SAMPLE_NUMBER);
 		expect(sanitizeLogData(null)).toBeNull();
 	});
