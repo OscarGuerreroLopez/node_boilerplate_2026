@@ -1,10 +1,14 @@
 import express from 'express';
 import request from 'supertest';
 import { HTTP_STATUS } from '@common/constants';
-import { requestContextMiddleware } from './request-context.middleware';
+import { makeRequestContextMiddleware } from './request-context.middleware';
 import { makeRateLimitMiddleware } from './rate-limit.middleware';
 
 const LIMITED_CODE = '16fd2706-8baf-433b-82eb-8c7fada847da';
+const requestContextMiddleware = makeRequestContextMiddleware({
+	trustIdentityHeader: false,
+	trustProxy: false
+});
 
 const buildApp = (enabled: boolean, maxRequests = 1): express.Express => {
 	const app = express();

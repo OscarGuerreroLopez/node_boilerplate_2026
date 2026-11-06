@@ -1,14 +1,15 @@
-import { Router } from 'express';
-import { credentialsMiddleware } from '@common/middlewares';
+import { Router, type RequestHandler } from 'express';
 import { SampleController } from './controller';
 
-export class SampleRoutes {
-	static get routes(): Router {
-		const router = Router();
-		const controller = new SampleController();
-
-		router.get('/', credentialsMiddleware, controller.sample);
-
-		return router;
-	}
+export interface SampleRoutesDependencies {
+	credentialsMiddleware: RequestHandler;
 }
+
+export const makeSampleRoutes = ({ credentialsMiddleware }: SampleRoutesDependencies): Router => {
+	const router = Router();
+	const controller = new SampleController();
+
+	router.get('/', credentialsMiddleware, controller.sample);
+
+	return router;
+};

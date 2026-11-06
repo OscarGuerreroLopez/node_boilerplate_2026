@@ -1,12 +1,14 @@
-import { Router } from 'express';
-import { SampleRoutes } from '@features/sample';
+import { Router, type RequestHandler } from 'express';
+import { makeSampleRoutes } from '@features/sample';
 
-export class V1Routes {
-	static get routes(): Router {
-		const router = Router();
-
-		router.use('/sample', SampleRoutes.routes);
-
-		return router;
-	}
+export interface V1RoutesDependencies {
+	credentialsMiddleware: RequestHandler;
 }
+
+export const makeV1Routes = ({ credentialsMiddleware }: V1RoutesDependencies): Router => {
+	const router = Router();
+
+	router.use('/sample', makeSampleRoutes({ credentialsMiddleware }));
+
+	return router;
+};

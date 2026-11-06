@@ -3,7 +3,7 @@ import { HTTP_STATUS } from '@common/constants';
 import { envs } from '@core/config';
 import { createApp } from './app';
 
-const expectedApiKey = process.env.API_KEY ?? 'local-api-key';
+const TEST_API_KEY = 'test-api-key';
 const TEST_RATE_LIMIT_WINDOW_MS = 60000;
 const TEST_RATE_LIMIT_MAX = 120;
 const HEALTH_CODE = 'e58ed763-928c-4155-bee9-fdbaaadc15f3';
@@ -15,6 +15,7 @@ const INVALID_JSON_CODE = '9b2f5c1e-3d4a-4b6c-8d7e-5f4a3b2c1d0e';
 const makeTestApp = (overrides: Partial<typeof envs> = {}): ReturnType<typeof createApp> =>
 	createApp({
 		...envs,
+		API_KEY: TEST_API_KEY,
 		TRUST_PROXY: false,
 		RATE_LIMIT_WINDOW_MS: TEST_RATE_LIMIT_WINDOW_MS,
 		RATE_LIMIT_MAX: TEST_RATE_LIMIT_MAX,
@@ -43,10 +44,19 @@ describe('app', () => {
 		expect(typeof response.body.code).toBe('string');
 	});
 
+	it('validates against the injected API key configuration', async () => {
+		const configuredApp = makeTestApp({ API_KEY: 'configured-key' });
+		const rejectedResponse = await request(configuredApp).get('/api/v1/sample').set('x-api-key', TEST_API_KEY);
+		const acceptedResponse = await request(configuredApp).get('/api/v1/sample').set('x-api-key', 'configured-key');
+
+		expect(rejectedResponse.status).toBe(HTTP_STATUS.FORBIDDEN);
+		expect(acceptedResponse.status).toBe(HTTP_STATUS.OK);
+	});
+
 	it('returns sample payload and ignores the legacy user header', async () => {
 		const response = await request(app)
 			.get('/api/v1/sample?name=Oscar')
-			.set('x-api-key', expectedApiKey)
+			.set('x-api-key', TEST_API_KEY)
 			.set('code', SAMPLE_CODE)
 			.set('user', '{"id":"u-1","email":"oscar@example.com"}');
 
@@ -65,7 +75,7 @@ describe('app', () => {
 		});
 		const response = await request(trustedProxyApp)
 			.get('/api/v1/sample?name=Oscar')
-			.set('x-api-key', expectedApiKey)
+			.set('x-api-key', TEST_API_KEY)
 			.set(
 				'x-authenticated-user',
 				JSON.stringify({
@@ -91,7 +101,7 @@ describe('app', () => {
 		});
 		const response = await request(directApp)
 			.get('/api/v1/sample?name=Oscar')
-			.set('x-api-key', expectedApiKey)
+			.set('x-api-key', TEST_API_KEY)
 			.set('x-authenticated-user', JSON.stringify({ id: 'u-1' }));
 
 		expect(response.status).toBe(HTTP_STATUS.OK);
@@ -101,7 +111,7 @@ describe('app', () => {
 	it('returns bad request when name is invalid', async () => {
 		const response = await request(app)
 			.get('/api/v1/sample?name=%20%20%20')
-			.set('x-api-key', expectedApiKey)
+			.set('x-api-key', TEST_API_KEY)
 			.set('code', INVALID_NAME_CODE);
 
 		expect(response.status).toBe(HTTP_STATUS.BAD_REQUEST);
@@ -140,8 +150,8 @@ describe('app', () => {
 
 	it('limits direct requests when TRUST_PROXY is false', async () => {
 		const limitedApp = makeTestApp({ RATE_LIMIT_MAX: 1 });
-		const firstResponse = await request(limitedApp).get('/api/v1/sample').set('x-api-key', expectedApiKey);
-		const secondResponse = await request(limitedApp).get('/api/v1/sample').set('x-api-key', expectedApiKey);
+		const firstResponse = await request(limitedApp).get('/api/v1/sample').set('x-api-key', TEST_API_KEY);
+		const secondResponse = await request(limitedApp).get('/api/v1/sample').set('x-api-key', TEST_API_KEY);
 
 		expect(firstResponse.status).toBe(HTTP_STATUS.OK);
 		expect(secondResponse.status).toBe(HTTP_STATUS.TOO_MANY_REQUESTS);
@@ -149,8 +159,8 @@ describe('app', () => {
 
 	it('does not limit requests when TRUST_PROXY is true', async () => {
 		const trustedProxyApp = makeTestApp({ TRUST_PROXY: true, RATE_LIMIT_MAX: 1 });
-		const firstResponse = await request(trustedProxyApp).get('/api/v1/sample').set('x-api-key', expectedApiKey);
-		const secondResponse = await request(trustedProxyApp).get('/api/v1/sample').set('x-api-key', expectedApiKey);
+		const firstResponse = await request(trustedProxyApp).get('/api/v1/sample').set('x-api-key', TEST_API_KEY);
+		const secondResponse = await request(trustedProxyApp).get('/api/v1/sample').set('x-api-key', TEST_API_KEY);
 
 		expect([firstResponse.status, secondResponse.status]).toEqual([HTTP_STATUS.OK, HTTP_STATUS.OK]);
 	});

@@ -1,10 +1,14 @@
 import express from 'express';
 import request from 'supertest';
 import { HTTP_STATUS } from '@common/constants';
-import { requestContextMiddleware } from './request-context.middleware';
+import { makeRequestContextMiddleware } from './request-context.middleware';
 import { requestLoggingMiddleware } from './request-logging.middleware';
 
 const REQUEST_CODE = '3f2504e0-4f89-41d3-9a0c-0305e82c3301';
+const requestContextMiddleware = makeRequestContextMiddleware({
+	trustIdentityHeader: false,
+	trustProxy: false
+});
 
 const buildApp = (): express.Express => {
 	const app = express();

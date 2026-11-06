@@ -57,9 +57,8 @@ RATE_LIMIT_WINDOW_MS=60000
 RATE_LIMIT_MAX=120
 ```
 
-`PORT` takes precedence over the legacy `SAMPLE_PORT` fallback. `API_KEY` must be set to a
-non-default value of at least 32 characters when `NODE_ENV=production`, otherwise the process
-refuses to start. Store production keys in a secret manager. API keys are trimmed before
+`PORT` defaults to `9000`. `API_KEY` must be set to a non-default value of at least 32
+characters when `NODE_ENV=production`, otherwise the process refuses to start. Store production keys in a secret manager. API keys are trimmed before
 comparison.
 
 `CORS_ALLOWED_ORIGINS` is a comma-separated allowlist. When it is empty, local and test
@@ -158,10 +157,20 @@ When persistence is needed, the use case also calls a data-access adapter.
 6. **API Key Validation** - Applied per-route to protected endpoints
 7. **Not Found and Error Handling** - Returns structured `404` and safe `500` responses
 
+Response compression is intentionally left to the edge (reverse proxy, load balancer, or CDN); add `compression` middleware early in this stack only if the service is exposed directly.
+
 Example of adding authentication to a route:
 ```typescript
-router.get('/protected', validateApiKey, controller.handler);
+export const makeProtectedRoutes = ({ credentialsMiddleware }: ProtectedRoutesDependencies): Router => {
+	const router = Router();
+
+	router.get('/protected', credentialsMiddleware, controller.handler);
+
+	return router;
+};
 ```
+
+`credentialsMiddleware` is built by `createApp` with `makeApiKeyMiddleware` and passed into the versioned route factories.
 
 ### Adding a New Feature
 

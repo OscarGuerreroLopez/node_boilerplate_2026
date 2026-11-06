@@ -7,7 +7,6 @@ const ENV_KEYS = [
 	'NODE_ENV',
 	'API_KEY',
 	'PORT',
-	'SAMPLE_PORT',
 	'API_PREFIX',
 	'TRUST_PROXY',
 	'TRUST_IDENTITY_HEADER',
@@ -20,7 +19,7 @@ const ENV_KEYS = [
 ] as const;
 const ORIGINAL_ENV = { ...process.env };
 const PORT_OVERRIDE = 1234;
-const SAMPLE_PORT_OVERRIDE = 5678;
+const DEFAULT_PORT = 9000;
 const SHUTDOWN_TIMEOUT_OVERRIDE = 5000;
 const DEFAULT_SHUTDOWN_TIMEOUT_MS = 10000;
 const DEFAULT_RATE_LIMIT_WINDOW_MS = 60000;
@@ -68,30 +67,27 @@ afterEach(() => {
 });
 
 describe('envs', () => {
-	it('uses PORT over SAMPLE_PORT when both are set', async () => {
+	it('uses the configured PORT', async () => {
 		setEnv({
 			NODE_ENV: NodeEnvEnum.LOCAL,
 			API_KEY: 'test-key',
-			PORT: '1234',
-			SAMPLE_PORT: '5678'
+			PORT: String(PORT_OVERRIDE)
 		});
 
 		const envs = loadEnvs();
 
 		expect(envs.PORT).toBe(PORT_OVERRIDE);
-		expect(envs.SAMPLE_PORT).toBe(SAMPLE_PORT_OVERRIDE);
 	});
 
-	it('falls back to SAMPLE_PORT when PORT is missing', async () => {
+	it('uses the default PORT when it is missing', async () => {
 		setEnv({
 			NODE_ENV: NodeEnvEnum.LOCAL,
-			API_KEY: 'test-key',
-			SAMPLE_PORT: '5678'
+			API_KEY: 'test-key'
 		});
 
 		const envs = loadEnvs();
 
-		expect(envs.PORT).toBe(SAMPLE_PORT_OVERRIDE);
+		expect(envs.PORT).toBe(DEFAULT_PORT);
 	});
 
 	it('normalizes API_PREFIX', async () => {

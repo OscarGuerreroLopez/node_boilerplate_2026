@@ -2,7 +2,7 @@ import express, { type Express } from 'express';
 import request from 'supertest';
 import { HTTP_STATUS } from '@common/constants';
 import { applyExpressEssentials } from './essentials.middleware';
-import { errorHandlerMiddleware } from './error-handler.middleware';
+import { makeErrorHandlerMiddleware } from './error-handler.middleware';
 
 interface BuildAppOptions {
 	corsAllowedOrigins: string[];
@@ -28,7 +28,7 @@ const buildApp = ({ corsAllowedOrigins, allowAllOriginsWhenEmpty }: BuildAppOpti
 		res.json({ ok: true });
 	});
 
-	app.use(errorHandlerMiddleware);
+	app.use(makeErrorHandlerMiddleware({ includeErrorDetails: false }));
 
 	return app;
 };

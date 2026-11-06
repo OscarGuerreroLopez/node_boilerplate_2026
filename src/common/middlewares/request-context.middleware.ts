@@ -2,7 +2,6 @@ import { randomUUID } from 'node:crypto';
 import { type NextFunction, type Request, type Response } from 'express';
 import { parseUserHeader, TRUSTED_IDENTITY_HEADER } from '@common/context';
 import { isUuid } from '@common/utils';
-import { envs } from '@core/config';
 
 interface RequestContextMiddlewareOptions {
 	trustIdentityHeader: boolean;
@@ -24,8 +23,3 @@ export const makeRequestContextMiddleware = ({
 		next();
 	};
 };
-
-export const requestContextMiddleware = makeRequestContextMiddleware({
-	trustIdentityHeader: envs.TRUST_IDENTITY_HEADER,
-	trustProxy: envs.TRUST_PROXY
-});

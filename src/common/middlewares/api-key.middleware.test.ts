@@ -2,10 +2,14 @@ import express from 'express';
 import request from 'supertest';
 import { HTTP_STATUS } from '@common/constants';
 import { makeApiKeyMiddleware } from './api-key.middleware';
-import { requestContextMiddleware } from './request-context.middleware';
+import { makeRequestContextMiddleware } from './request-context.middleware';
 
 const EXPECTED_API_KEY = 'expected-api-key';
 const FORBIDDEN_CODE = '7c9e6679-7425-40de-944b-e07fc1f90ae7';
+const requestContextMiddleware = makeRequestContextMiddleware({
+	trustIdentityHeader: false,
+	trustProxy: false
+});
 
 const buildApp = (expectedApiKey = EXPECTED_API_KEY): express.Express => {
 	const app = express();

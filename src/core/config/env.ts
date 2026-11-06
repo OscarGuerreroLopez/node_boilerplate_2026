@@ -51,8 +51,7 @@ const KEEP_ALIVE_TIMEOUT_MS = get('KEEP_ALIVE_TIMEOUT_MS')
 	.default(String(DEFAULT_KEEP_ALIVE_TIMEOUT_MS))
 	.asIntPositive();
 
-const SAMPLE_PORT = get('SAMPLE_PORT').default('9000').asPortNumber();
-const PORT = get('PORT').default(String(SAMPLE_PORT)).asPortNumber();
+const PORT = get('PORT').default('9000').asPortNumber();
 
 const normalizedApiKey = API_KEY.trim();
 
@@ -70,7 +69,6 @@ if (HEADERS_TIMEOUT_MS > REQUEST_TIMEOUT_MS) {
 
 export const envs = {
 	PORT,
-	SAMPLE_PORT,
 	API_KEY,
 	NODE_ENV,
 	API_PREFIX,

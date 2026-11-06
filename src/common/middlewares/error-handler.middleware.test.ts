@@ -2,17 +2,21 @@ import express, { type Express, type RequestHandler } from 'express';
 import request from 'supertest';
 import { HTTP_STATUS } from '@common/constants';
 import { HttpError } from '@common/errors';
-import { buildErrorLogContext, errorHandlerMiddleware } from './error-handler.middleware';
-import { requestContextMiddleware } from './request-context.middleware';
+import { buildErrorLogContext, makeErrorHandlerMiddleware } from './error-handler.middleware';
+import { makeRequestContextMiddleware } from './request-context.middleware';
 
 const UNEXPECTED_CODE = '5d41402a-bc2f-4f0b-b9f3-9f3e9f2f6d1c';
+const requestContextMiddleware = makeRequestContextMiddleware({
+	trustIdentityHeader: false,
+	trustProxy: false
+});
 
 const buildApp = (handler: RequestHandler): Express => {
 	const app = express();
 
 	app.use(requestContextMiddleware);
 	app.get('/error', handler);
-	app.use(errorHandlerMiddleware);
+	app.use(makeErrorHandlerMiddleware({ includeErrorDetails: false }));
 
 	return app;
 };
@@ -45,7 +49,7 @@ describe('buildErrorLogContext', () => {
 	});
 });
 
-describe('errorHandlerMiddleware', () => {
+describe('makeErrorHandlerMiddleware', () => {
 	it('returns a safe 500 response for unexpected errors', async () => {
 		const app = buildApp((): void => {
 			throw new Error('secret database detail');

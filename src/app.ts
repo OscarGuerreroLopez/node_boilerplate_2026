@@ -1,20 +1,25 @@
 import express from 'express';
 import { envs } from '@core/config';
 import { NodeEnvEnum } from '@common/types';
-import { HealthRoutes } from '@features/health';
-import { V1Routes } from '@versions';
+import { makeHealthRoutes } from '@features/health';
+import { makeV1Routes } from '@versions';
 import {
 	applyBodyParsers,
 	applyExpressSecurity,
-	errorHandlerMiddleware,
+	makeApiKeyMiddleware,
+	makeErrorHandlerMiddleware,
+	makeNotFoundMiddleware,
 	makeRateLimitMiddleware,
 	makeRequestContextMiddleware,
-	notFoundMiddleware,
 	requestLoggingMiddleware
 } from '@common/middlewares';
 
 export const createApp = (configuration: typeof envs): express.Express => {
 	const app = express();
+	const credentialsMiddleware = makeApiKeyMiddleware({
+		getExpectedApiKey: () => configuration.API_KEY
+	});
+	const includeErrorDetails = configuration.NODE_ENV !== NodeEnvEnum.PRODUCTION;
 
 	app.set('trust proxy', configuration.TRUST_PROXY);
 	app.use(
@@ -36,10 +41,10 @@ export const createApp = (configuration: typeof envs): express.Express => {
 		})
 	);
 	applyBodyParsers(app, { maxJsonBodySize: configuration.MAX_JSON_BODY_SIZE });
-	app.use(HealthRoutes.routes);
-	app.use(configuration.API_PREFIX, V1Routes.routes);
-	app.use(notFoundMiddleware);
-	app.use(errorHandlerMiddleware);
+	app.use(makeHealthRoutes());
+	app.use(configuration.API_PREFIX, makeV1Routes({ credentialsMiddleware }));
+	app.use(makeNotFoundMiddleware());
+	app.use(makeErrorHandlerMiddleware({ includeErrorDetails }));
 
 	return app;
 };

@@ -1,8 +1,7 @@
-import { type NextFunction, type Request, type Response } from 'express';
+import { type ErrorRequestHandler, type NextFunction, type Request, type Response } from 'express';
 import { HTTP_STATUS } from '@common/constants';
-import { NodeEnvEnum, type ErrorResponse } from '@common/types';
+import { type ErrorResponse } from '@common/types';
 import { HttpError } from '@common/errors';
-import { envs } from '@core/config';
 import { createLogger } from '@core/logger';
 
 interface ExpressError extends Error {
@@ -38,8 +37,6 @@ const logger = createLogger({
 	file: 'src/common/middlewares/error-handler.middleware.ts',
 	property: 'errorHandler'
 });
-
-const includeErrorDetails = envs.NODE_ENV !== NodeEnvEnum.PRODUCTION;
 
 export const buildErrorLogContext = (
 	error: Error,
@@ -122,22 +119,25 @@ const resolveErrorResponse = (error: ExpressError, statusCode: number, code: str
 	};
 };
 
-export const errorHandlerMiddleware = (
-	error: unknown,
-	req: Request,
-	res: Response<ErrorResponse>,
-	_next: NextFunction
-): void => {
-	const normalizedError = error instanceof Error ? error : new Error('Unknown error');
-	const statusCode = resolveStatusCode(normalizedError);
-	const code = req.code ?? 'noCode';
+interface MakeErrorHandlerMiddlewareOptions {
+	includeErrorDetails: boolean;
+}
 
-	if (statusCode === HTTP_STATUS.INTERNAL_SERVER_ERROR) {
-		logger.error(
-			'Unhandled request error',
-			buildErrorLogContext(normalizedError, statusCode, code, includeErrorDetails)
-		);
-	}
+export const makeErrorHandlerMiddleware = ({
+	includeErrorDetails
+}: MakeErrorHandlerMiddlewareOptions): ErrorRequestHandler => {
+	return (error: unknown, req: Request, res: Response<ErrorResponse>, _next: NextFunction): void => {
+		const normalizedError = error instanceof Error ? error : new Error('Unknown error');
+		const statusCode = resolveStatusCode(normalizedError);
+		const code = req.code ?? 'noCode';
 
-	res.status(statusCode).json(resolveErrorResponse(normalizedError, statusCode, code));
+		if (statusCode === HTTP_STATUS.INTERNAL_SERVER_ERROR) {
+			logger.error(
+				'Unhandled request error',
+				buildErrorLogContext(normalizedError, statusCode, code, includeErrorDetails)
+			);
+		}
+
+		res.status(statusCode).json(resolveErrorResponse(normalizedError, statusCode, code));
+	};
 };
