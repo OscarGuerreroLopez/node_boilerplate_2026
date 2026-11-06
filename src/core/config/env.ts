@@ -3,7 +3,6 @@ import { get } from 'env-var';
 import { NodeEnvEnum } from '@common/types';
 
 const NODE_ENVS = Object.values(NodeEnvEnum);
-const DEFAULT_API_KEY = 'local-api-key';
 const MIN_PRODUCTION_API_KEY_LENGTH = 32;
 const DEFAULT_API_PREFIX = '/api/v1';
 const DEFAULT_RATE_LIMIT_WINDOW_MS = 60_000;
@@ -30,7 +29,7 @@ const normalizeApiPrefix = (value: string): string => {
 
 const NODE_ENV = get('NODE_ENV').default(NodeEnvEnum.LOCAL).asEnum(NODE_ENVS);
 
-const API_KEY = get('API_KEY').default(DEFAULT_API_KEY).asString();
+const API_KEY = get('API_KEY').default('').asString();
 const CORS_ALLOWED_ORIGINS = get('CORS_ALLOWED_ORIGINS')
 	.default('')
 	.asString()
@@ -55,8 +54,8 @@ const PORT = get('PORT').default('9000').asPortNumber();
 
 const normalizedApiKey = API_KEY.trim();
 
-if (NODE_ENV === NodeEnvEnum.PRODUCTION && (normalizedApiKey.length === 0 || normalizedApiKey === DEFAULT_API_KEY)) {
-	throw new Error('API_KEY must be set to a non-default value in production');
+if (normalizedApiKey.length === 0) {
+	throw new Error('API_KEY must be set');
 }
 
 if (NODE_ENV === NodeEnvEnum.PRODUCTION && normalizedApiKey.length < MIN_PRODUCTION_API_KEY_LENGTH) {

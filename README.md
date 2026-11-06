@@ -57,8 +57,9 @@ RATE_LIMIT_WINDOW_MS=60000
 RATE_LIMIT_MAX=120
 ```
 
-`PORT` defaults to `9000`. `API_KEY` must be set to a non-default value of at least 32
-characters when `NODE_ENV=production`, otherwise the process refuses to start. Store production keys in a secret manager. API keys are trimmed before
+`PORT` defaults to `9000`. `API_KEY` is required in every environment, otherwise the process
+refuses to start. The value in `.env.template` is for local development only. Production keys
+must be at least 32 characters and stored in a secret manager. API keys are trimmed before
 comparison.
 
 `CORS_ALLOWED_ORIGINS` is a comma-separated allowlist. When it is empty, local and test

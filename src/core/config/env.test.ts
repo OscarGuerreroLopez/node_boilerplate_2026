@@ -258,30 +258,27 @@ describe('envs', () => {
 		expect(() => loadEnvs()).toThrow('HEADERS_TIMEOUT_MS must be less than or equal to REQUEST_TIMEOUT_MS');
 	});
 
-	it('throws in production when API_KEY is missing', async () => {
+	it('throws when API_KEY is missing', async () => {
 		setEnv({
-			NODE_ENV: NodeEnvEnum.PRODUCTION
+			NODE_ENV: NodeEnvEnum.LOCAL
 		});
 
-		expect(() => loadEnvs()).toThrow('API_KEY must be set to a non-default value in production');
+		expect(() => loadEnvs()).toThrow('API_KEY must be set');
 	});
 
-	it('throws in production when API_KEY is still the default', async () => {
-		setEnv({
-			NODE_ENV: NodeEnvEnum.PRODUCTION,
-			API_KEY: 'local-api-key'
-		});
+	it('throws when API_KEY is missing and NODE_ENV is not set', async () => {
+		setEnv({});
 
-		expect(() => loadEnvs()).toThrow('API_KEY must be set to a non-default value in production');
+		expect(() => loadEnvs()).toThrow('API_KEY must be set');
 	});
 
-	it('throws in production when API_KEY is blank', async () => {
+	it('throws when API_KEY is blank', async () => {
 		setEnv({
-			NODE_ENV: NodeEnvEnum.PRODUCTION,
+			NODE_ENV: NodeEnvEnum.LOCAL,
 			API_KEY: '   '
 		});
 
-		expect(() => loadEnvs()).toThrow('API_KEY must be set to a non-default value in production');
+		expect(() => loadEnvs()).toThrow('API_KEY must be set');
 	});
 
 	it('throws in production when API_KEY is too short', async () => {
@@ -295,13 +292,13 @@ describe('envs', () => {
 		);
 	});
 
-	it('throws in production when API_KEY is the default after trimming', async () => {
+	it('throws in production when API_KEY is blank after trimming', async () => {
 		setEnv({
 			NODE_ENV: NodeEnvEnum.PRODUCTION,
-			API_KEY: '  local-api-key  '
+			API_KEY: '   '
 		});
 
-		expect(() => loadEnvs()).toThrow('API_KEY must be set to a non-default value in production');
+		expect(() => loadEnvs()).toThrow('API_KEY must be set');
 	});
 
 	it('allows production with a valid API_KEY', async () => {
