@@ -5,8 +5,8 @@ TypeScript + Express single-app boilerplate to start backend projects quickly wi
 This version includes:
 - **pnpm** for dependency management
 - **Health check endpoint** (public `GET /health`)
-- **Sample feature** with complete implementation showing the architecture pattern
-- **3-layer architecture** (presentation → domain → data-access) with dependency injection
+- **Sample feature** showing the HTTP presentation and domain layers
+- **Feature-oriented layered design** with data access added when persistence is needed
 - **API versioning** support (v1)
 - **Request context** (request ID tracking and user info)
 - **API key authentication** middleware
@@ -41,18 +41,60 @@ the Corepack commands can be skipped.
 `.env.template` includes:
 
 ```env
-SAMPLE_PORT=9000
+PORT=9000
 API_KEY=your-local-api-key
 NODE_ENV=local
-```
-
-Optional variables:
-
-```env
-CORS_ALLOWED_ORIGINS=http://localhost:3000,http://localhost:5173
+API_PREFIX=/api/v1
+TRUST_PROXY=false
+TRUST_IDENTITY_HEADER=false
+CORS_ALLOWED_ORIGINS=
 MAX_JSON_BODY_SIZE=300kb
-SMALL_REQUEST_BYTES=65536
+SHUTDOWN_TIMEOUT_MS=10000
+REQUEST_TIMEOUT_MS=300000
+HEADERS_TIMEOUT_MS=60000
+KEEP_ALIVE_TIMEOUT_MS=5000
+RATE_LIMIT_WINDOW_MS=60000
+RATE_LIMIT_MAX=120
 ```
+
+`PORT` defaults to `9000`. `API_KEY` is required in every environment, otherwise the process
+refuses to start. The value in `.env.template` is for local development only. Production keys
+must be at least 32 characters and stored in a secret manager. API keys are trimmed before
+comparison.
+
+`CORS_ALLOWED_ORIGINS` is a comma-separated allowlist. When it is empty, local and test
+environments allow all origins, while production denies browser origins that are not listed.
+Requests without an `Origin` header are always allowed. Credentials are enabled only when the
+allowlist is non-empty; an empty allowlist allows all origins without cross-origin cookies or
+HTTP auth credentials.
+
+`TRUST_PROXY` controls Express proxy trust and defaults to `false`. Enable it only when the app
+runs behind a trusted proxy that sets client IP headers.
+
+`TRUST_IDENTITY_HEADER` defaults to `false`. When enabled together with `TRUST_PROXY=true`, the
+app reads identity only from the `x-authenticated-user` header as JSON. Enable it only behind a
+trusted gateway that strips any client-supplied identity headers before adding its own. The
+legacy `user` header is always ignored. Only `id`, `email`, `name`, and `role` are retained from
+the identity header.
+
+`MAX_JSON_BODY_SIZE` limits both JSON and URL-encoded request bodies at the parser level. Requests
+above the limit receive a structured `413` response.
+
+`SHUTDOWN_TIMEOUT_MS` is the grace period for active requests during `SIGINT` or `SIGTERM`.
+Remaining connections are closed after the timeout.
+
+`REQUEST_TIMEOUT_MS`, `HEADERS_TIMEOUT_MS`, and `KEEP_ALIVE_TIMEOUT_MS` set the HTTP server
+timeouts in milliseconds. Defaults are 300000 (5 minutes), 60000 (1 minute), and 5000
+(5 seconds). `HEADERS_TIMEOUT_MS` must be less than or equal to `REQUEST_TIMEOUT_MS`.
+`KEEP_ALIVE_TIMEOUT_MS` should exceed the reverse proxy idle timeout, otherwise the proxy may
+close connections and return 502 responses.
+
+`RATE_LIMIT_WINDOW_MS` and `RATE_LIMIT_MAX` set the per-IP request limit. Window uses milliseconds:
+use `60000` for 60 seconds; `60` means 60 milliseconds. Defaults are 60 seconds and 120 requests.
+The app skips rate limiting when `TRUST_PROXY=true`, because that setting means
+requests arrive through a trusted service that owns rate limiting. Do not expose the app directly
+when this mode is enabled. `/health` is exempt for health probes. The built-in memory store is for
+a single app process; use a shared store when running multiple instances.
 
 ## Run
 
@@ -77,7 +119,7 @@ pnpm start
 ## Endpoints
 
 - Health (public): `GET /health`
-- Sample (versioned + API key protected): `GET /api/v1/sample`
+- Sample (versioned + API key protected): `GET {API_PREFIX}/sample`, defaulting to `/api/v1/sample`
 
 Example requests:
 
@@ -85,33 +127,51 @@ Example requests:
 curl http://localhost:9000/health
 
 curl "http://localhost:9000/api/v1/sample?name=Oscar" \
-  -H "x-api-key: your-local-api-key" \
-  -H 'user: {"id":"u-1","email":"oscar@example.com"}'
+  -H "x-api-key: your-local-api-key"
 ```
+
+To exercise identity locally, set `TRUST_PROXY=true` and `TRUST_IDENTITY_HEADER=true`, then send
+a JSON `x-authenticated-user` header. Do not trust this header outside a controlled gateway.
 
 ## Architecture
 
-### Layered Design
-Each feature module follows a clean architecture with clear separation of concerns:
+### Feature Layers
+Features separate HTTP concerns from domain logic. Add a data-access adapter when a feature needs persistence:
 
-- **Controllers** handle HTTP requests and delegate to usecases
-- **Usecases** orchestrate business logic with dependency injection via function composition
+- **Controllers** handle HTTP requests and delegate to use cases
+- **Use cases** orchestrate application logic and receive dependencies through function composition
 - **Services** contain reusable business logic
 - **DTOs** provide type-safe data transfer and validation
-- **Repositories** (data-access layer) manage persistence
+- **Data access** manages persistence when required by a feature
 
 ### Request Flow
-HTTP request → Route → Controller → Usecase → Services → Repository → Response
+HTTP request → Route → Controller → Use case → Domain logic → Response
+
+When persistence is needed, the use case also calls a data-access adapter.
 
 ### Middleware Stack
-1. **Express Essentials** — JSON parsing, CORS, Helmet security
-2. **Request Context** — Extracts `code` (request ID) and `user` from headers
-3. **API Key Validation** — Applied per-route to protected endpoints
+1. **Request Context** - Extracts `code` (request ID) and, when enabled, trusted gateway identity. `code` must be a canonical UUID; missing, invalid or oversized values are replaced with a random UUID.
+2. **Request Logging** - Logs method, route, status, duration and request code after each response
+3. **Express Security** - CORS and Helmet security
+4. **Rate Limiting** - Per-IP limit when `TRUST_PROXY=false`, except `/health`
+5. **Body Parsing** - JSON and URL-encoded body size limits
+6. **API Key Validation** - Applied per-route to protected endpoints
+7. **Not Found and Error Handling** - Returns structured `404` and safe `500` responses
+
+Response compression is intentionally left to the edge (reverse proxy, load balancer, or CDN); add `compression` middleware early in this stack only if the service is exposed directly.
 
 Example of adding authentication to a route:
 ```typescript
-router.get('/protected', validateApiKey, controller.handler);
+export const makeProtectedRoutes = ({ credentialsMiddleware }: ProtectedRoutesDependencies): Router => {
+	const router = Router();
+
+	router.get('/protected', credentialsMiddleware, controller.handler);
+
+	return router;
+};
 ```
+
+`credentialsMiddleware` is built by `createApp` with `makeApiKeyMiddleware` and passed into the versioned route factories.
 
 ### Adding a New Feature
 
@@ -136,13 +196,22 @@ router.get('/protected', validateApiKey, controller.handler);
 - `pnpm version:minor`
 - `pnpm version:major`
 
+## AI agent: caveman mode
+
+To make the agent use the caveman skill, say one of:
+
+- "caveman mode"
+- "talk like caveman"
+
+If it does not load, say "use the caveman skill" explicitly. To turn it off, say "stop caveman" or "normal mode".
+
 ## Project Structure
 
-Each feature in `src/features/` follows a 3-layer architecture:
+Features in `src/features/` use separate presentation and domain layers. A data-access layer is added when persistence is required:
 
 1. **HTTP Presentation** — Routes and controllers
 2. **Domain** — Business logic (usecases, services, DTOs)
-3. **Data Access** — Repository/persistence layer
+3. **Data Access** — Optional repository and persistence adapters
 
 Common utilities and middleware are in `src/common/`, core infrastructure (config, logger) in `src/core/`.
 
@@ -165,11 +234,13 @@ src/
   │   ├── health/               # Health check feature
   │   │   └── http-presentation/
   │   └── sample/               # Sample feature (template)
+  │       ├── data-access/      # Repositories and adapters
   │       ├── domain/
   │       │   ├── dtos/         # Data transfer objects
   │       │   ├── services/     # Business logic
   │       │   └── usecases/     # Application orchestration
-  │       └── http-presentation/
+  │       ├── http-presentation/
+  │       └── composition.ts    # Dependency wiring
   └── versions/                 # API versioning
       └── v1/
 ```

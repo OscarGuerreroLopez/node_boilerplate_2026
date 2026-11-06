@@ -12,4 +12,8 @@ describe('buildHelloMessage', () => {
 	it('returns hello name when name is provided', () => {
 		expect(buildHelloMessage('Oscar')).toBe('hello Oscar');
 	});
+
+	it('uses the provided prefix', () => {
+		expect(buildHelloMessage('Oscar', 'hi')).toBe('hi Oscar');
+	});
 });

@@ -1,20 +1,24 @@
 import { timingSafeEqual } from 'node:crypto';
 import { type NextFunction, type Request, type RequestHandler, type Response } from 'express';
 import { HTTP_STATUS } from '@common/constants';
-
-interface ErrorResponse {
-	name: string;
-	message: string;
-	code: string;
-}
+import { type ErrorResponse } from '@common/types';
 
 interface MakeApiKeyMiddlewareOptions {
 	getExpectedApiKey: () => string;
 }
 
+const normalizeApiKey = (apiKey: string): string => apiKey.trim();
+
 const isSameApiKey = (providedApiKey: string, expectedApiKey: string): boolean => {
-	const providedBuffer = Buffer.from(providedApiKey, 'utf8');
-	const expectedBuffer = Buffer.from(expectedApiKey, 'utf8');
+	const normalizedProvidedApiKey = normalizeApiKey(providedApiKey);
+	const normalizedExpectedApiKey = normalizeApiKey(expectedApiKey);
+
+	if (normalizedProvidedApiKey.length === 0 || normalizedExpectedApiKey.length === 0) {
+		return false;
+	}
+
+	const providedBuffer = Buffer.from(normalizedProvidedApiKey, 'utf8');
+	const expectedBuffer = Buffer.from(normalizedExpectedApiKey, 'utf8');
 
 	if (providedBuffer.length !== expectedBuffer.length) {
 		return false;

@@ -1,3 +1,5 @@
+import { SampleValidationError } from '../errors/sample-validation.error';
+
 interface CreateSampleDto {
 	name?: string;
 }
@@ -13,7 +15,7 @@ export class SampleDto {
 		}
 
 		if (typeof name !== 'string' || !name.trim()) {
-			throw new Error('Name must be a non-empty string');
+			throw new SampleValidationError('Name must be a non-empty string');
 		}
 
 		return new SampleDto(name.trim());

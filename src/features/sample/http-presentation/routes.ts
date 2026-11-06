@@ -1,14 +1,18 @@
-import { Router } from 'express';
-import { credentialsMiddleware, requestSmallSizeLimitMiddleware } from '@common/middlewares';
+import { Router, type RequestHandler } from 'express';
+import { sampleUseCase } from '../composition';
 import { SampleController } from './controller';
 
-export class SampleRoutes {
-	static get routes(): Router {
-		const router = Router();
-		const controller = new SampleController();
-
-		router.get('/', credentialsMiddleware, requestSmallSizeLimitMiddleware, controller.sample);
-
-		return router;
-	}
+export interface SampleRoutesDependencies {
+	credentialsMiddleware: RequestHandler;
 }
+
+export const makeSampleRoutes = ({ credentialsMiddleware }: SampleRoutesDependencies): Router => {
+	const router = Router();
+	const controller = new SampleController({ sampleUseCase });
+
+	router.get('/', credentialsMiddleware, (req, res, next) => {
+		void controller.sample(req, res, next);
+	});
+
+	return router;
+};

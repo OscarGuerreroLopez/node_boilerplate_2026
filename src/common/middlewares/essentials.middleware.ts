@@ -2,27 +2,35 @@ import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
 
-interface ApplyExpressEssentialsOptions {
+interface ApplyExpressSecurityOptions {
 	corsAllowedOrigins: string[];
+	allowAllOriginsWhenEmpty: boolean;
+}
+
+interface ApplyBodyParsersOptions {
 	maxJsonBodySize: string;
 }
 
 const ZERO = 0;
 
-export const applyExpressEssentials = (
+export const applyExpressSecurity = (
 	app: express.Express,
-	{ corsAllowedOrigins, maxJsonBodySize }: ApplyExpressEssentialsOptions
+	{ corsAllowedOrigins, allowAllOriginsWhenEmpty }: ApplyExpressSecurityOptions
 ): void => {
 	const allowedOrigins = new Set(corsAllowedOrigins);
 
-	app.use(express.urlencoded({ extended: true }));
-	app.use(express.json({ limit: maxJsonBodySize }));
+	app.use(helmet());
 	app.use(
 		cors({
-			credentials: true,
+			credentials: allowedOrigins.size > ZERO,
 			origin: (origin, callback) => {
-				if (origin === undefined || allowedOrigins.size === ZERO) {
+				if (origin === undefined) {
 					callback(null, true);
+					return;
+				}
+
+				if (allowedOrigins.size === ZERO) {
+					callback(null, allowAllOriginsWhenEmpty);
 					return;
 				}
 
@@ -30,5 +38,9 @@ export const applyExpressEssentials = (
 			}
 		})
 	);
-	app.use(helmet());
+};
+
+export const applyBodyParsers = (app: express.Express, { maxJsonBodySize }: ApplyBodyParsersOptions): void => {
+	app.use(express.urlencoded({ extended: true, limit: maxJsonBodySize }));
+	app.use(express.json({ limit: maxJsonBodySize }));
 };

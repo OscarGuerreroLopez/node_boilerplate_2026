@@ -1,12 +1,20 @@
+import type { ReadGreetingConfig } from '../dtos';
+
 interface GreetingServiceDependencies {
-	buildHelloMessage: (name?: string | undefined) => string;
+	readGreetingConfig: ReadGreetingConfig;
+	buildHelloMessage: (name?: string | undefined, prefix?: string | undefined) => string;
 }
 
-export type MakeGreetingService = (dependencies: GreetingServiceDependencies) => (name?: string | undefined) => string;
+export type GreetingService = (name?: string | undefined) => Promise<string>;
 
-export const makeGreetingService: MakeGreetingService = ({ buildHelloMessage }) => {
-	function greetingService(name?: string): string {
-		return buildHelloMessage(name);
+export type MakeGreetingService = (dependencies: GreetingServiceDependencies) => GreetingService;
+
+export const makeGreetingService: MakeGreetingService = ({ readGreetingConfig, buildHelloMessage }) => {
+	async function greetingService(name?: string): Promise<string> {
+		const { prefix } = await readGreetingConfig();
+
+		return buildHelloMessage(name, prefix);
 	}
+
 	return greetingService;
 };

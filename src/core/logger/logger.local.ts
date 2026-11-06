@@ -17,7 +17,10 @@ let logDirectoryReady: Promise<unknown> | undefined;
 
 const ensureLogDirectory = async (): Promise<void> => {
 	if (logDirectoryReady === undefined) {
-		logDirectoryReady = mkdir(LOGS_DIR_PATH, { recursive: true });
+		logDirectoryReady = mkdir(LOGS_DIR_PATH, { recursive: true }).catch((error: unknown) => {
+			logDirectoryReady = undefined;
+			throw error;
+		});
 	}
 
 	await logDirectoryReady;
@@ -32,13 +35,9 @@ const formatPrettyLog = (payload: Record<string, unknown>): string => {
 	});
 };
 
-export const persistLocalLog = (level: LogLevel, payload: Record<string, unknown>): void => {
-	void ensureLogDirectory()
-		.then(async () => {
-			const filePath = LOG_LEVEL_FILE_PATHS[level];
-			await appendFile(filePath, `${formatPrettyLog(payload)}${NEW_LINE}${NEW_LINE}`);
-		})
-		.catch(() => {
-			// Keep app flow safe if local file logging fails.
-		});
+export const persistLocalLog = async (level: LogLevel, payload: Record<string, unknown>): Promise<void> => {
+	await ensureLogDirectory();
+
+	const filePath = LOG_LEVEL_FILE_PATHS[level];
+	await appendFile(filePath, `${formatPrettyLog(payload)}${NEW_LINE}${NEW_LINE}`);
 };

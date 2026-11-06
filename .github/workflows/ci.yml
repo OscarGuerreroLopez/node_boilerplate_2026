@@ -31,5 +31,8 @@ jobs:
       - name: Install Dependencies
         run: pnpm install --frozen-lockfile
 
+      - name: Audit Production Dependencies
+        run: pnpm audit --prod
+
       - name: Check Code
         run: pnpm check-code
