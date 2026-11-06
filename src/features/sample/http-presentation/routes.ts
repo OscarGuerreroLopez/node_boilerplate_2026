@@ -1,4 +1,5 @@
 import { Router, type RequestHandler } from 'express';
+import { sampleUseCase } from '../composition';
 import { SampleController } from './controller';
 
 export interface SampleRoutesDependencies {
@@ -7,9 +8,11 @@ export interface SampleRoutesDependencies {
 
 export const makeSampleRoutes = ({ credentialsMiddleware }: SampleRoutesDependencies): Router => {
 	const router = Router();
-	const controller = new SampleController();
+	const controller = new SampleController({ sampleUseCase });
 
-	router.get('/', credentialsMiddleware, controller.sample);
+	router.get('/', credentialsMiddleware, (req, res, next) => {
+		void controller.sample(req, res, next);
+	});
 
 	return router;
 };

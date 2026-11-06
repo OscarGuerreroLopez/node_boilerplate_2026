@@ -1,7 +1,21 @@
 import request from 'supertest';
 import { HTTP_STATUS } from '@common/constants';
 import { envs } from '@core/config';
+import type { makeGreetingConfigRepository } from './features/sample/data-access';
 import { createApp } from './app';
+
+interface SampleDataAccess {
+	makeGreetingConfigRepository: typeof makeGreetingConfigRepository;
+}
+
+jest.mock('./features/sample/data-access', () => {
+	const actual = jest.requireActual<SampleDataAccess>('./features/sample/data-access');
+
+	return {
+		...actual,
+		readGreetingConfig: actual.makeGreetingConfigRepository({ delayMs: 0 })
+	};
+});
 
 const TEST_API_KEY = 'test-api-key';
 const TEST_RATE_LIMIT_WINDOW_MS = 60000;
@@ -63,7 +77,7 @@ describe('app', () => {
 		expect(response.status).toBe(HTTP_STATUS.OK);
 		expect(response.body).toEqual({
 			message: 'ok',
-			result: 'hello Oscar',
+			result: 'Hola Oscar',
 			code: SAMPLE_CODE
 		});
 	});

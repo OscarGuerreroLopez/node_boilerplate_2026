@@ -3,7 +3,11 @@ import { HTTP_STATUS } from '@common/constants';
 import { HttpError } from '@common/errors';
 import { type ErrorResponse, type User } from '@common/types';
 import { SampleValidationError } from '../domain/errors/sample-validation.error';
-import { sampleUseCase } from '../domain/usecases';
+import { type SampleUseCase } from '../domain/usecases';
+
+interface SampleControllerDependencies {
+	sampleUseCase: SampleUseCase;
+}
 
 interface SampleRequest {
 	name?: string;
@@ -17,15 +21,17 @@ interface SampleResponse {
 }
 
 export class SampleController {
-	public sample = (
+	constructor(private readonly dependencies: SampleControllerDependencies) {}
+
+	public sample = async (
 		req: Request<unknown, unknown, unknown, Partial<SampleRequest>>,
 		res: Response<SampleResponse | ErrorResponse>,
 		next: NextFunction
-	): void => {
+	): Promise<void> => {
 		const { user, code } = req;
 
 		try {
-			const { result } = sampleUseCase({
+			const { result } = await this.dependencies.sampleUseCase({
 				name: req.query.name
 			});
 

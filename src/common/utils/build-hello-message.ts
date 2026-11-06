@@ -1,4 +1,4 @@
-export const buildHelloMessage = (name?: string): string => {
+export const buildHelloMessage = (name?: string, prefix = 'hello'): string => {
 	const safeName = name?.trim();
-	return `hello ${safeName && safeName.length > 0 ? safeName : 'world'}`;
+	return `${prefix} ${safeName && safeName.length > 0 ? safeName : 'world'}`;
 };
