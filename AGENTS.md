@@ -149,3 +149,20 @@ pnpm test -- src/path/to/file.test.ts
 - Do not claim checks passed unless they were actually run and succeeded.
 - Never commit or push changes unless the user explicitly asks for it. Do not proactively run `git commit`, `git push`, or create pull requests.
 - If repository behavior contradicts this document, verify the implementation and update this guidance when appropriate.
+
+## Skill routing
+
+- Before planning or changing files, check whether an available skill matches the task. Load the most specific matching skill with the skill-loading tool.
+- Treat skill instructions as additional guidance. Higher-priority instructions and this repository's requirements still apply.
+- Load a skill for its defined task, not merely because the task contains a related keyword. Do not load multiple skills unless the task has distinct parts that need them.
+- Use `nodejs-backend-patterns` for Express API, middleware, authentication, error-handling or backend feature work.
+- Use `security-review` when the user asks for a security review, vulnerability audit, or to find security issues. Report only high-confidence exploitable findings, and research the codebase to verify input sources and existing protections.
+- Use `security-best-practices` for security guidance or secure-by-default coding. For this Express/TypeScript app, read `.agents/skills/security-best-practices/references/javascript-express-web-server-security.md`. Do not trigger it for general code review, debugging or routine implementation.
+- Use `pnpm` for dependency changes, lockfile updates, pnpm configuration or pnpm-specific package management.
+- Use `typescript-advanced-types` for complex generics, conditional or mapped types, template-literal types or reusable type utilities.
+- Use `typescript-pro` for broader advanced TypeScript work, such as custom type guards, branded types or end-to-end type safety. Prefer `typescript-advanced-types` when the task is specifically about complex type logic.
+- Use `analyze-project` for read-only repository exploration or audits. Do not use it for implementation or code changes.
+- Use `git-commit` only when the user explicitly asks to create a commit. Repository rules still prohibit pushing unless explicitly requested.
+- Use `customize-opencode` only when changing OpenCode configuration, skills, agents, plugins, MCP servers or permissions. Do not use it for application code.
+- Use Tavily skills only when the user explicitly requests Tavily. Otherwise, follow the web-search instructions from higher-priority guidance.
+- If no available skill fits, follow this file without loading a skill. Do not claim a skill was used unless it was loaded.
