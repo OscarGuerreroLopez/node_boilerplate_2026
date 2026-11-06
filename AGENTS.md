@@ -30,11 +30,13 @@ src/
 │   ├── health/
 │   │   └── http-presentation/ # Health routes and controller
 │   └── sample/
+│       ├── data-access/      # Repositories and adapters
 │       ├── domain/
 │       │   ├── dtos/
 │       │   ├── services/
 │       │   └── usecases/
-│       └── http-presentation/ # Routes and controller
+│       ├── http-presentation/ # Routes and controller
+│       └── composition.ts    # Dependency wiring
 ├── types/
 │   └── express-augment.d.ts  # Express request augmentation
 └── versions/

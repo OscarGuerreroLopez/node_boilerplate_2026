@@ -234,11 +234,13 @@ src/
   │   ├── health/               # Health check feature
   │   │   └── http-presentation/
   │   └── sample/               # Sample feature (template)
+  │       ├── data-access/      # Repositories and adapters
   │       ├── domain/
   │       │   ├── dtos/         # Data transfer objects
   │       │   ├── services/     # Business logic
   │       │   └── usecases/     # Application orchestration
-  │       └── http-presentation/
+  │       ├── http-presentation/
+  │       └── composition.ts    # Dependency wiring
   └── versions/                 # API versioning
       └── v1/
 ```
