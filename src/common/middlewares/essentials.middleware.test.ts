@@ -1,7 +1,7 @@
 import express, { type Express } from 'express';
 import request from 'supertest';
 import { HTTP_STATUS } from '@common/constants';
-import { applyExpressEssentials } from './essentials.middleware';
+import { applyBodyParsers, applyExpressSecurity } from './essentials.middleware';
 import { makeErrorHandlerMiddleware } from './error-handler.middleware';
 
 interface BuildAppOptions {
@@ -14,11 +14,8 @@ const OVERSIZED_BODY_LENGTH = 2048;
 const buildApp = ({ corsAllowedOrigins, allowAllOriginsWhenEmpty }: BuildAppOptions): Express => {
 	const app = express();
 
-	applyExpressEssentials(app, {
-		corsAllowedOrigins,
-		maxJsonBodySize: '1kb',
-		allowAllOriginsWhenEmpty
-	});
+	applyExpressSecurity(app, { corsAllowedOrigins, allowAllOriginsWhenEmpty });
+	applyBodyParsers(app, { maxJsonBodySize: '1kb' });
 
 	app.get('/test', (_req, res): void => {
 		res.json({ ok: true });
@@ -33,7 +30,7 @@ const buildApp = ({ corsAllowedOrigins, allowAllOriginsWhenEmpty }: BuildAppOpti
 	return app;
 };
 
-describe('applyExpressEssentials CORS behavior', () => {
+describe('applyExpressSecurity CORS behavior', () => {
 	it('allows requests without an Origin header', async () => {
 		const app = buildApp({
 			corsAllowedOrigins: [],
@@ -104,7 +101,7 @@ describe('applyExpressEssentials CORS behavior', () => {
 	});
 });
 
-describe('applyExpressEssentials parser errors', () => {
+describe('applyBodyParsers parser errors', () => {
 	it('keeps security and CORS headers on malformed JSON responses', async () => {
 		const app = buildApp({
 			corsAllowedOrigins: ['http://example.com'],
@@ -123,7 +120,7 @@ describe('applyExpressEssentials parser errors', () => {
 	});
 });
 
-describe('applyExpressEssentials body limits', () => {
+describe('applyBodyParsers body limits', () => {
 	it('rejects oversized JSON bodies', async () => {
 		const app = buildApp({
 			corsAllowedOrigins: [],

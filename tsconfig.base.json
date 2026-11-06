@@ -4,7 +4,6 @@
 		"paths": {
 			"@common/*": ["src/common/*"],
 			"@core/*": ["src/core/*"],
-			"@features": ["src/features/index.ts"],
 			"@features/*": ["src/features/*"],
 			"@versions": ["src/versions/index.ts"],
 			"@versions/*": ["src/versions/*"]

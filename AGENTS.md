@@ -27,11 +27,9 @@ src/
 │   ├── config/               # Environment configuration
 │   └── logger/               # Logger implementations and types
 ├── features/
-│   ├── index.ts              # Feature exports
 │   ├── health/
 │   │   └── http-presentation/ # Health routes and controller
 │   └── sample/
-│       ├── data-access/      # Repositories and persistence
 │       ├── domain/
 │       │   ├── dtos/
 │       │   ├── services/

@@ -4,5 +4,3 @@ export const NodeEnvEnum = {
 	PRODUCTION: 'production',
 	TEST: 'test'
 } as const;
-
-export type NodeEnv = (typeof NodeEnvEnum)[keyof typeof NodeEnvEnum];

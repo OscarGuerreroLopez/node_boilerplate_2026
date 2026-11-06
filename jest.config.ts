@@ -17,7 +17,6 @@ const config: Config = {
 		'^@common/(.*)$': '<rootDir>/src/common/$1',
 		'^@core/(.*)$': '<rootDir>/src/core/$1',
 		'^@features/(.*)$': '<rootDir>/src/features/$1',
-		'^@features$': '<rootDir>/src/features/index.ts',
 		'^@versions/(.*)$': '<rootDir>/src/versions/$1',
 		'^@versions$': '<rootDir>/src/versions/index.ts'
 	},

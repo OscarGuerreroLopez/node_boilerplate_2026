@@ -2,12 +2,6 @@ import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
 
-interface ApplyExpressEssentialsOptions {
-	corsAllowedOrigins: string[];
-	maxJsonBodySize: string;
-	allowAllOriginsWhenEmpty: boolean;
-}
-
 interface ApplyExpressSecurityOptions {
 	corsAllowedOrigins: string[];
 	allowAllOriginsWhenEmpty: boolean;
@@ -49,12 +43,4 @@ export const applyExpressSecurity = (
 export const applyBodyParsers = (app: express.Express, { maxJsonBodySize }: ApplyBodyParsersOptions): void => {
 	app.use(express.urlencoded({ extended: true, limit: maxJsonBodySize }));
 	app.use(express.json({ limit: maxJsonBodySize }));
-};
-
-export const applyExpressEssentials = (
-	app: express.Express,
-	{ corsAllowedOrigins, maxJsonBodySize, allowAllOriginsWhenEmpty }: ApplyExpressEssentialsOptions
-): void => {
-	applyExpressSecurity(app, { corsAllowedOrigins, allowAllOriginsWhenEmpty });
-	applyBodyParsers(app, { maxJsonBodySize });
 };
