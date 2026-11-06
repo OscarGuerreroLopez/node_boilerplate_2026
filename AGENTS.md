@@ -156,7 +156,8 @@ pnpm test -- src/path/to/file.test.ts
 - Treat skill instructions as additional guidance. Higher-priority instructions and this repository's requirements still apply.
 - Load a skill for its defined task, not merely because the task contains a related keyword. Do not load multiple skills unless the task has distinct parts that need them.
 - Use `nodejs-backend-patterns` for Express API, middleware, authentication, error-handling or backend feature work.
-- Use `security-best-practices` when the user explicitly requests security guidance, a security review/report, or secure-by-default coding. For this Express/TypeScript app, read `.agents/skills/security-best-practices/references/javascript-express-web-server-security.md`. Do not trigger it for general code review, debugging or routine implementation.
+- Use `security-review` when the user asks for a security review, vulnerability audit, or to find security issues. Report only high-confidence exploitable findings, and research the codebase to verify input sources and existing protections.
+- Use `security-best-practices` for security guidance or secure-by-default coding. For this Express/TypeScript app, read `.agents/skills/security-best-practices/references/javascript-express-web-server-security.md`. Do not trigger it for general code review, debugging or routine implementation.
 - Use `pnpm` for dependency changes, lockfile updates, pnpm configuration or pnpm-specific package management.
 - Use `typescript-advanced-types` for complex generics, conditional or mapped types, template-literal types or reusable type utilities.
 - Use `typescript-pro` for broader advanced TypeScript work, such as custom type guards, branded types or end-to-end type safety. Prefer `typescript-advanced-types` when the task is specifically about complex type logic.
