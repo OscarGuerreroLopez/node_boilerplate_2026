@@ -205,6 +205,12 @@ To make the agent use the caveman skill, say one of:
 
 If it does not load, say "use the caveman skill" explicitly. To turn it off, say "stop caveman" or "normal mode".
 
+## AI agent: security review
+
+Ask the agent to "security review" or "find vulnerabilities" to review code for exploitable security issues. The skill traces input through the codebase and reports only high-confidence findings.
+
+See [`security-review`](./.agents/skills/security-review/SKILL.md) for its review process and reporting format.
+
 ## Project Structure
 
 Features in `src/features/` use separate presentation and domain layers. A data-access layer is added when persistence is required:
